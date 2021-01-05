@@ -23,7 +23,11 @@ typedef enum en_SignColors
 
 }en_SignColors;
 
+
+
 PACKED_BEGIN
+
+
 typedef struct st_ALSN
 {
  float CurrSpeed;
@@ -32,24 +36,24 @@ typedef struct st_ALSN
  int NumSigForw;
  int NumSigBack;
  int NumSigPassed;
- //SignalsInfo signListForw;
  SignalsInfo signListBack;
  SignalsInfo signListPassed;
  SignalsInfo ForwardSignalsList[SIGNALS_CNT];
  wchar_t signalName[MAX_STRING_NAME];
 }st_ALSN;
-PACKED_END
+
 
 
 typedef struct st_KLUB
 {
-    int internalState;
     int isOn;
     struct timeb prevTime;
     struct timeb currTime;
-    Cabin *cab;
+    Cabin *cabPtr;
 }st_KLUB;
 
+
+PACKED_END
 #ifdef __cplusplus
 }
 #endif

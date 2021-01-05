@@ -60,6 +60,7 @@ public:
     int start(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcept;
     int stop(const Locomotive *loco, Engine *eng) noexcept;
     int step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcept;
+    int dist() { return  m_SELF.Distance; }
     const wchar_t * stateString() noexcept { return m_stateString; }
 
 private:

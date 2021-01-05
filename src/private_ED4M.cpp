@@ -30,6 +30,8 @@ int _checkSwitchWithSound(const Locomotive *loco, unsigned int switchElem, int s
         {
             if (!singleSound) // если не PlayOneShot
                 _playSound(loco, soundId + 1); // сбрасываем звук
+            else
+                _playSound(loco, soundId, where); // устанавливаем звук
         }
     }
     return elemState ;

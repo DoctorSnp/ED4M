@@ -6,12 +6,6 @@
 #include "src/ED4M_datatypes/cab/section1/elements.h"
 #include "saut.h"
 
-#define IS_GREEN(sig)   ( sig == SIGASP_CLEAR_1) || (sig == SIGASP_CLEAR_2 )
-#define IS_YELLOW(sig)  ( sig == SIGASP_APPROACH_1) || (sig == SIGASP_APPROACH_2) || (sig == SIGASP_APPROACH_3 )
-#define IS_KG(sig)      ( sig == SIGASP_STOP_AND_PROCEED )
-#define IS_RED(sig)     ( sig == SIGASP_STOP) || ( sig == SIGASP_BLOCK_OBSTRUCTED )
-#define IS_WHITE(sig)   ( sig == SIGASP_RESTRICTING )
-
 constexpr int TIME_FOR_DISABLE_TYAGA = 20;
 constexpr int TIME_FOR_EPK_START = 14;
 constexpr int TIME_FOR_EPK_BRAKE = TIME_FOR_EPK_START + 14;
@@ -59,8 +53,6 @@ int SAUT::step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcep
     int sautState = SAUT_NORMAL;
     if (isEnabled == 0)
         return SAUT_DISABLED;
-
-    //m_SELF.Distance = (int)alsn->SpeedLimit.Distance;
 
     m_SELF.Speed = alsn->CurrSpeed;
     m_SELF.SpeedLimit = alsn->SpeedLimit.Limit;

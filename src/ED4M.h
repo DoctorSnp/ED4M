@@ -66,7 +66,6 @@ struct st_Self
 {
   st_Flags flags;
   int isBackward;
-  int brake395_pos;
   int secdionCabDest;
   int dest; // 1 ,0,  -1
   st_Tumblers tumblers; // Это потом удалить
@@ -101,7 +100,7 @@ struct st_Self
 PACKED_END
 
 bool ED4M_init(struct st_Self *SELF, Locomotive *loco, Engine *eng);
-void ED4M_set_destination(st_Self *SELF, int dest);
+//void ED4M_set_destination(st_Self *SELF, int dest);
 void ED4M_ALSN(struct st_Self *SELF, const Locomotive *loco);
 int ED4M_Step(struct st_Self *SELF, const ElectricLocomotive *loco, ElectricEngine *eng, float gameTime);
 

@@ -18,6 +18,12 @@ typedef enum en_Lights
    Light_Proj_Full7= 32,
    Light_Proj_Full8= 33,
 
+   Light_BufferRight = 6,
+   Light_BufferLeft = 7,
+   Light_SigUp1 = 12,
+   Light_SigUp2 = 13,
+   //Light_SigDown1 = ,
+
 }en_Lights;
 
 typedef enum sounds
@@ -28,22 +34,22 @@ typedef enum sounds
     EPK_INIT = 129,
     //EPK_OFF = 107,
     EPK_ALARM_S = 56, // 57 не занимать!
-    TP_UP = 13,
-    TP_DOWN = 14,
+    TP_UP = 200,
+    TP_DOWN = 201,
     Revers =15,
     PesokButton = 4,
     FinalStop = 54,
     Controller = 16,
-    Kran395_Otpusk = 124,
-    Kran395_Poezdnoe = 126,
-    Kran395_Slugebnoe = 128,
-    Kran395_Extrennoe = 130,
+    Kran395_Otpusk = 500,
+    Kran395_Poezdnoe = 502,
+    Kran395_Slugebnoe = 504,
+    Kran395_Extrennoe = 508,
     Svistok = 10,
     Tifon = 8,
     Avtomat = 191,
     VU = 192,
-    RB = 25
-
+    RB = 25,
+    Switch = 113
 }SoundsID;
 
 typedef enum en_Tumblers
@@ -65,19 +71,80 @@ typedef enum en_Tumblers
     Tmb_leftDoors = 24,
     Tmb_rightDoors = 25,
     Key_EPK = 26,
+
+
+    /* Задняя панель */
+    Switch_LightSalon = 30,
+    Switch_LightCab = 31,
+    Switch_SigUp = 32,
+    Switch_SigDown = 33,
+    Switch_BufLeft = 34,
+    Switch_EPT = 35,
+    Packetnik_ObogrevMaslo = 36,
+    Switch_Vent_I_Otoplenie = 37, // +
+    Switch_ObogrevZerkal = 38, // +
+    Tumbler_VspomCompressos = 39, // +
+    Tumbler_ObogrevCab = 40,
+    Tumbler_ObogrevCabIntensiv = 41,
+    Switch_BufRight = 42,
+    Packetnik_ObogrevCabDop = 43,
+    Switch_SvetPult = 44,
+    Switch_XZ = 45,
+    Switch_VentCab = 46, // +
+    Switch_Radio = 47, //+
+    Switch_XZ_2 = 48, //+
+
+    Switch_StekloobogrOkon_Lob = 51,
+    Switch_StekloobogrOkon_Marshr = 52,
+    Switch_StekloobogrevOkon_Bok = 53,
+    Tmb_Tormozhenie = 55, //+
+    Tmb_Dvornik_Mashinist = 56, //+
+    Tmb_Dvornik_Pomoshnik = 57, //+
+
+    Switch_PitALSN_1 = 58,
+    Switch_PitALSN_2 = 59,
+    Switch_Osveshenie = 60,
+    Switch_ObogrevMasla = 61,
+    Switch_Panto = 62,
+    Switch_Pitanie_Dverey = 63,
+    Switch_Projector_I_signaly = 64,
+    Switch_BufferFonar_I_Dvorniki = 65,
+    Switch_PitanieStekloobogrevLob = 66,  // +
+    Switch_PitanieStekloobogrevMarshrut = 67, // +
+
+
 }Tumblers;
 
 
 typedef enum en_Sensors
 {
+    Sns_Voltage = 1,
     Sns_BrakeCil = 2,
     Sns_SurgeTank = 3,
     Sns_BrakeLine = 4,
     Sns_PressureLine = 5,
 
-    SnsSpeed1 = 23,
+    /*КЛУБ*/
+    Sns_KLUB_Speed1 = 23,
+    Sns_KLUB_Time = 24,
+    Sns_KLUB_KM = 25,
+    Sns_KLUB_Station = 26,
+    Sns_KLUB_SigName = 30,
+    Sns_KLUB_RassDoCeli = 31,
+    Sns_KLUB_Manevr = 34,
+    Sns_KLUB_Green4 = 40,
+    Sns_KLUB_Green3 = 41,
+    Sns_KLUB_Green2 = 42,
+    Sns_KLUB_Green1 = 43,
+    Sns_KLUB_Yellow = 44,
+    Sns_KLUB_RedYellow = 45,
+    Sns_KLUB_Red = 46,
+    Sns_KLUB_White = 47,
 
 }Sensors;
+
+
+
 
 typedef enum en_Lamps
 {
@@ -103,11 +170,18 @@ typedef enum en_Lamps
 
 typedef enum en_Buttons
 {
-    Btn_Svistok = 17,
-    Btn_Tifon = 16,
+    Btn_SvistokMash = 17,
+    Btn_Svistok2 = 70,
+    Btn_Svistok3 = 71,
+    Btn_TifonMash = 16,
+    Btn_Tifon2 = 69,
     Btn_RB_D = 22,
     Btn_RB = 23,
-    Btn_RescueBrake = 38
+    Btn_RescueBrake = 38,
+
+    Btn_Zapros = 49,
+    Btn_Povtor = 50,
+    Btn_Zvonok = 54,
 }Buttons;
 
 
@@ -123,6 +197,10 @@ typedef enum en_Arms
   Arm_Reverse = 1,
   Arm_395 = 2,
   Arm_ManualBrake = 4,
+
+  Arm_PressureLine = 75,
+  Arm_DoubleForce = 76,
+
 }Arms;
 
 

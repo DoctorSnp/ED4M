@@ -37,7 +37,6 @@ int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void* lpReserved
  * Открытые функции библиотеки
  *******************************/
 
-
 /**
  * Инициализация локомотива.
  * Возвращает true в случае успеха и false в случае ошибки.
@@ -46,8 +45,6 @@ extern "C" bool Q_DECL_EXPORT Init
  (ElectricEngine *eng,ElectricLocomotive *loco,unsigned long State,
         float time,float AirTemperature)
 {
-
-
     if ( ED4M_init(&SELF, loco, eng ) == false)
         return 0;
 
@@ -74,6 +71,8 @@ extern "C" bool Q_DECL_EXPORT Init
  SELF.service.LocoState = 0;
  Cabin *cab=eng->cab;
  UINT *Flags=(UINT *)&eng->var[0];
+
+ /*
  switch(State&0xFF)
  {
  case 0:
@@ -82,10 +81,6 @@ extern "C" bool Q_DECL_EXPORT Init
      if((State>>8)&1){
       loco->LocoFlags|=1;
      };
-    /* cab->SetSwitch(3,2,true);
-     cab->SetSwitch(0,0,0,true);
-     cab->SetSwitch(0,1,0,true);
-     cab->SetSwitch(0,2,0,true);*/
      loco->MainResPressure=7.0;
      loco->TrainPipePressure=5.0;
      loco->AuxiliaryPressure=5.2;
@@ -113,7 +108,7 @@ extern "C" bool Q_DECL_EXPORT Init
      loco->MainResPressure=0.0;
      eng->IndependentBrakeValue=0.0;
      break;
- }
+ }*/
 
  SELF.dest = -1;
  return 1;
@@ -125,6 +120,9 @@ extern "C" void Q_DECL_EXPORT ALSN ( Locomotive *loco, SignalsInfo *sigAhead, UI
         float SpeedLimit, float NextLimit,
         float DistanceToNextLimit, bool Backwards )
 {
+
+    if( (loco->NumSlaves < 1) ) // это не голова! // || (loco->LocoFlags&1) )
+        return;
 
     SELF.alsn.SpeedLimit.Distance = DistanceToNextLimit;
     SELF.alsn.SpeedLimit.Limit = (float)(SpeedLimit * TO_KM_PH);
@@ -152,6 +150,7 @@ extern "C" void Q_DECL_EXPORT ALSN ( Locomotive *loco, SignalsInfo *sigAhead, UI
     if (sigBack)
         SELF.alsn.signListBack =  *sigBack;
 
+    //Printer_print(loco->Eng(), GMM_POST, L"Distance: %f\n", DistanceToNextLimit );
     ED4M_ALSN(&SELF, loco );
 }
 
@@ -160,6 +159,8 @@ extern "C" void Q_DECL_EXPORT Run
  (ElectricEngine *eng,const ElectricLocomotive *loco, unsigned long State,
         float time,float AirTemperature)
 {
+     SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitchWithSound(loco, Tumblers::Switch_Panto, -1, 1, 0);
+
      ED4M_Step(&SELF, loco, eng, time);
 }
 
@@ -175,7 +176,6 @@ extern "C" void Q_DECL_EXPORT  ChangeLoco
    loco->LocoFlags|=1;
  }else
   loco->LocoFlags|=1;
-  //  VL15_init(&SELF, loco );
 }
 
 extern "C" void  Q_DECL_EXPORT  LostMaster
@@ -194,8 +194,8 @@ extern "C" void  Q_DECL_EXPORT  LostMaster
 
 extern "C" bool Q_DECL_EXPORT CanWorkWith(const Locomotive *loco, const wchar_t *Type)
 {
- //if(!lstrcmpiW(Type,L"vl15"))
-  return true;
+ //if(!lstrcmpiW(Type,L"ed4m"))
+    return true;
  //return false;
 }
 
@@ -229,16 +229,9 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco,ElectricEn
         unsigned int SwitchID,unsigned int PrevState)
 {
 
-    ElectricLocomotive *BackSec=NULL;
-    if(loco->NumSlaves)
-     BackSec=(ElectricLocomotive *)loco->Slaves[0];
-
-    if(BackSec)
-        BackSec->loco->IndependentBrakeValue=eng->IndependentBrakeValue;
-
     /* Проверка кранов/рычагов, реверса и т.д. */
     if ( SwitchID == Arms::Arm_395)
-        SELF.pneumo.Arm_395 = 7 -  _checkSwitchWithSound(loco, Arms::Arm_395, SoundsID::Kran_395, 1, 2);
+        SELF.pneumo.Arm_395 = _checkSwitchWithSound(loco, Arms::Arm_395, SoundsID::Kran_395, 1, 2);
     else if  ( SwitchID ==  Arms::Arm_Reverse )
        SELF.Reverse = _checkSwitchWithSound(loco,  Arms::Arm_Reverse, SoundsID::Revers, 1, 2);
     else if  ( SwitchID ==  Arms::Arm_Controller )
@@ -249,7 +242,7 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco,ElectricEn
            SELF.RecuperationPosition = 0;
            SELF.TyagaPosition = ControllerPos - NEUTRAL_CONTROLLER_POS;
        }
-        else
+       else
        {
            SELF.TyagaPosition = 0;
            SELF.RecuperationPosition = NEUTRAL_CONTROLLER_POS - ControllerPos;
@@ -261,21 +254,50 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco,ElectricEn
        SELF.tumblersArray[SwitchID] =  _checkSwitchWithSound(loco, SwitchID, Default_Tumbler, 1, 0);
     else if  ( SwitchID == Tmb_lightCab_Dimly)
        SELF.tumblersArray[Tmb_lightCab_Dimly] = _checkSwitchWithSound(loco, Tmb_lightCab_Dimly, Default_Tumbler, 1, 0);
-    else if ( SwitchID ==Tumblers::Key_EPK )
+    else if ( SwitchID == Tumblers::Key_EPK )
         SELF.tumblersArray[Tumblers::Key_EPK] = _checkSwitchWithSound(loco, Tumblers::Key_EPK, SoundsID::EPK_INIT, 1, 0);
 
-    else if ( SwitchID ==Tumblers::Tmb_AutomatUpr )
+    else if ( SwitchID == Tumblers::Tmb_AutomatUpr )
         SELF.tumblersArray[Tumblers::Tmb_AutomatUpr] = _checkSwitchWithSound(loco, Tumblers::Tmb_AutomatUpr, SoundsID::Avtomat, 1, 0);
-    else if ( SwitchID ==Tumblers::Tmb_VU )
+    else if ( SwitchID == Tumblers::Tmb_VU )
         SELF.tumblersArray[Tumblers::Tmb_VU] = _checkSwitchWithSound(loco, Tumblers::Tmb_VU, SoundsID::VU, 1, 0);
 
+    else if ( SwitchID == Tumblers::Switch_PitALSN_1 )
+        SELF.tumblersArray[Tumblers::Switch_PitALSN_1] = _checkSwitchWithSound(loco, Tumblers::Switch_PitALSN_1, SoundsID::Switch, 1, 0);
+    else if ( SwitchID == Tumblers::Switch_PitALSN_2 )
+        SELF.tumblersArray[Tumblers::Switch_PitALSN_2] = _checkSwitchWithSound(loco, Tumblers::Switch_PitALSN_2, SoundsID::Switch, 1, 0);
+    else if ( SwitchID == Tumblers::Switch_Panto)
+        SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitchWithSound(loco, Tumblers::Switch_Panto, SoundsID::Switch, 1, 0);
+
+    /*проверка тумблеров, пакетников и кнопок на задней панели*/
+
+    /*если маленький тумблер (свитч) */
+    else if (( SwitchID >= Switch_LightSalon) && ( SwitchID <= Switch_EPT) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+    else if (( SwitchID == Switch_Vent_I_Otoplenie) ||  ( SwitchID == Switch_ObogrevZerkal) || ( SwitchID == Switch_BufRight) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+    else if (( SwitchID >= Switch_SvetPult ) &&  ( SwitchID <= Switch_XZ_2) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+    else if (( SwitchID >= Switch_StekloobogrOkon_Lob) && ( SwitchID <= Switch_StekloobogrevOkon_Bok) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+    else if (( SwitchID >= Switch_PitALSN_1 ) &&  ( SwitchID <= Switch_PitanieStekloobogrevMarshrut) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+
+    /*если обычный тумблер или пакетник */
+    else if (( SwitchID >= Tumbler_VspomCompressos ) &&  ( SwitchID <= Tumbler_ObogrevCabIntensiv) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
+    else if (( SwitchID >= Tmb_Tormozhenie ) &&  ( SwitchID <= Tmb_Dvornik_Pomoshnik) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
+    else if (( SwitchID == Packetnik_ObogrevCabDop ) ||  ( SwitchID == Packetnik_ObogrevMaslo) )
+        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
 
 
+    /***************************************************************/
     /*проверка кнопок */
-     else if ( SwitchID ==Buttons::Btn_Tifon )
-        _checkSwitchWithSound(loco, Buttons::Btn_Tifon, sounds::Tifon, 0, 0);
-     else if ( SwitchID ==Buttons::Btn_Svistok )
-        _checkSwitchWithSound(loco, Buttons::Btn_Svistok, sounds::Svistok, 0, 0);
+    else if ( ( SwitchID ==Buttons::Btn_TifonMash ) ||  (SwitchID ==Buttons::Btn_Tifon2) )
+        _checkSwitchWithSound(loco, Buttons::Btn_TifonMash, sounds::Tifon, 0, 0);
+    else if ( ( SwitchID ==Buttons::Btn_SvistokMash)  || (SwitchID ==Buttons::Btn_Svistok2) || (SwitchID ==Buttons::Btn_Svistok3 ))
+        _checkSwitchWithSound(loco, Buttons::Btn_SvistokMash, sounds::Svistok, 0, 0);
     else if  ( SwitchID ==Buttons::Btn_RB )
         _checkSwitchWithSound(loco, Buttons::Btn_RB, sounds::RB, 0, 0);
     else if  ( SwitchID ==Buttons::Btn_RB_D )
@@ -290,5 +312,4 @@ extern "C" void Q_DECL_EXPORT SpeedLimit(const Locomotive *loco,
 
     //Printer_print(loco->Eng(), GMM_POST, L"Speed Limit!\n");
     //SELF.sautData.SpeedLimit =  Event;
-
 }

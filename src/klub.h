@@ -6,8 +6,9 @@
 #include "shared_structs.h"
 
 
-int KLUB_init(st_KLUB* _KLUB, const Locomotive *loco);
+int KLUB_init(st_KLUB* _KLUB);
 
-void KLUB_Step(st_KLUB *_KLUB, ElectricEngine *eng, st_ALSN& alsn);
+void KLUB_setState(st_KLUB *_KLUB, int newState);
+void KLUB_Step(st_KLUB *_KLUB, Engine *eng, st_ALSN& alsn, const Locomotive *loco);
 
 #endif // KLUB_H
