@@ -9,9 +9,21 @@
 #include "klub.h"
 #include "utils/utils.h"
 
+#define KLUB_UNSET 0
+#define KLUB_POEZDNOE 1
+#define KLUB_MANEVR 2
+#define KLUB_DOUBLE_TYAGA 3
+
 static void _display(st_KLUB* _KLUB, st_ALSN &alsn, Engine *eng);
 static void _setEnabled(st_KLUB *_KLUB, int isEnabled );
-static void _setBillColour(st_KLUB* _KLUB, int code);
+
+static void _displayCurrentMode(st_KLUB *_KLUB, st_ALSN &alsn);
+static void _displaySignals(st_KLUB* _KLUB, int code);
+static void _displayTime(st_KLUB* _KLUB, int isDisplay);
+
+static void _checkInput(st_KLUB* _KLUB);
+static void _addToCmd(st_KLUB* _KLUB, int cifer);
+static int _execCmd(st_KLUB *_KLUB);
 
 
 int KLUB_init(st_KLUB* _KLUB)
@@ -19,78 +31,91 @@ int KLUB_init(st_KLUB* _KLUB)
     memset(_KLUB, 0, sizeof (st_KLUB));
     ftime(&_KLUB->prevTime);
     ftime(&_KLUB->currTime);
+    _KLUB->cmdForExec = 0;
     return 1;
 }
 
 void KLUB_setState(st_KLUB *_KLUB, int newState)
 {
     if (_KLUB->isOn != newState)
+    {
+        _KLUB->cmdForExec = 0;
         _setEnabled(_KLUB, newState);
+    }
 }
 
 void KLUB_Step(st_KLUB* _KLUB,  Engine *eng, st_ALSN& alsn, const Locomotive *loco)
 {
     ftime(&_KLUB->currTime);
-    if ( _KLUB->currTime.time <  _KLUB->prevTime.time + 1  )
-        return;
+    if ( _KLUB->currTime.time < _KLUB->prevTime.time + 1 )
+        if ( _KLUB->currTime.millitm  < _KLUB->prevTime.millitm + 500 )
+            return;
 
+    _KLUB->locoPtr = loco;
     _KLUB->cabPtr = loco->cab;
+    _KLUB->enginePtr = eng;
+
+    if ( _KLUB->mode == KLUB_POEZDNOE )
+         _KLUB->speedLimit = (int)alsn.SpeedLimit.Limit;
+    else if (_KLUB->mode == KLUB_MANEVR)
+        _KLUB->speedLimit = 60;
 
     _display(_KLUB, alsn, eng);
     _KLUB->prevTime.time = _KLUB->currTime.time;
+    _KLUB->prevTime.millitm = _KLUB->currTime.millitm;
+
+    if (_KLUB->isOn < 2)
+        return;
+
+    _checkInput( _KLUB);
 }
 
 
 static void _display(st_KLUB* _KLUB, st_ALSN& alsn, Engine *eng)
 {
-    wchar_t tempText[32];
+    wchar_t currSpeed[32];
+    wchar_t speedLimit[32];
 
-    swprintf(tempText,L"%03d", (int)alsn.CurrSpeed);
-    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Speed1, 0, tempText);
-
-    if (_KLUB->isOn >= 2 )
-        swprintf(tempText ,L"%03d", (int)alsn.SpeedLimit.Limit);
-    else
-        swprintf(tempText ,L"");
-
-    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Speed1, 1, tempText);
-
-
-    swprintf(tempText,L"км%dпк%d", int(eng->CurrentMilepost), int((eng->CurrentMilepost * 10)) % 10) ;
-    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_KM, 0, tempText);
-
-    if (_KLUB->isOn > 0 )
+    swprintf(currSpeed, L"%03d", (int)alsn.CurrSpeed);
+    if (_KLUB->isOn >= 1 )
     {
-        swprintf(tempText ,L"%s", "СтанциЯ");
-        upperCase(tempText);
-        _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Station, 0, tempText);
-        _setBillColour(_KLUB, m_getSignCode(&alsn));
+        _displayTime(_KLUB, 1);
+        if (_KLUB->isOn == 1)
+        {
+            int newState = !_KLUB->cabPtr->ScreenState(Sensors::Sns_KLUB_Speed1, 0);
+            if (newState == 0)
+                swprintf(currSpeed, L"");
+            _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Speed1, 0, newState);
+            swprintf(speedLimit ,L"");
+        }
+        else
+        {
+            if (_KLUB->cabPtr->ScreenState(Sensors::Sns_KLUB_Speed1, 0) == 0)
+                _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Speed1, 0, 1);
+
+            swprintf(speedLimit ,L"%03d", _KLUB->speedLimit);
+        }
+        _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Speed1, 0, currSpeed);
+        _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Speed1, 1, speedLimit);
     }
-
-    //swprintf(tempText ,L"%s", alsn.signalName);
-
-    //_KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_SigName, 0, tempText);
-
-     //swprintf(tempText ,L"%03d", alsn.SpeedLimit.Distance);
-     //_KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_RassDoCeli, 0, tempText);
-
+    wchar_t currKilometer[32];
+    swprintf(currKilometer, L"%4.3f", eng->CurrentMilepost);
+    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_KM, 0, currKilometer);
+     _displayCurrentMode(_KLUB, alsn);
+    _displaySignals(_KLUB, m_getSignCode(&alsn));
 }
 
 static void _setEnabled(st_KLUB *_KLUB, int isEnabled )
 {
     _KLUB->isOn = isEnabled;
-
+    if (_KLUB->mode == KLUB_UNSET)
+        _KLUB->mode = KLUB_POEZDNOE;
     _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Speed1, isEnabled);
     _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_KM, isEnabled);
     _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_RassDoCeli, isEnabled);
     _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_SigName, isEnabled);
     _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Station, isEnabled);
     _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Time, isEnabled);
-    //if (_KLUB->isOn < 2)
-   // {
-   //     _setBillColour(_KLUB, -1);
-  //  }
-
 }
 
 /**
@@ -98,7 +123,7 @@ static void _setEnabled(st_KLUB *_KLUB, int isEnabled )
  * @param _KLUB
  * @param code
  */
-static void _setBillColour(st_KLUB* _KLUB, int code)
+static void _displaySignals(st_KLUB* _KLUB, int code)
 {
     if ( _KLUB->isOn < 2  )
     {
@@ -117,7 +142,9 @@ static void _setBillColour(st_KLUB* _KLUB, int code)
         return;
     }
 
-    en_SignColors colour = m_getSignColor(code);
+     en_SignColors colour = en_SignColors::COLOR_WHITE;
+    if (_KLUB->mode == KLUB_POEZDNOE)
+        colour = m_getSignColor(code);
 
     if (colour == en_SignColors::COLOR_GREEN)
     {
@@ -125,7 +152,7 @@ static void _setBillColour(st_KLUB* _KLUB, int code)
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Green3, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Green2, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Green1, 1);
-        _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Yellow, 1);
+        _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Yellow, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_RedYellow, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Red, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_White, 0);
@@ -161,7 +188,7 @@ static void _setBillColour(st_KLUB* _KLUB, int code)
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Green1, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Yellow, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_RedYellow, 0);
-        _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Red, 0);
+        _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Red, 1);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_White, 0);
     }
     else
@@ -175,5 +202,135 @@ static void _setBillColour(st_KLUB* _KLUB, int code)
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Red, 0);
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_White, 1);
     }
+}
 
+/**
+ * @brief _displayTime Показывает или скрывает время КЛУБа
+ * @param _KLUB Указатель на структуру КЛУБа
+ * @param isDisplay 1 показывать время, 0 - не показывать
+ */
+static void _displayTime(st_KLUB* _KLUB, int isDisplay)
+{
+    if (isDisplay == 0)
+    {
+        _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Time, 0, 0);
+        return;
+    }
+
+    if (_KLUB->cabPtr->ScreenState(Sensors::Sns_KLUB_Time, 0) < 1)
+        _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Time, 0, 1);
+
+    int curr_time = RTSGetInteger(_KLUB->locoPtr, RTS_VAR_TIME , 1);
+    int sec = curr_time % 60;
+    int min = (curr_time / 60) % 60;
+    int hour = (curr_time / 360) % 60 ;
+
+    wchar_t tempText[32];
+    swprintf(tempText ,L"%02d:%02d%02d", hour, min, sec);
+    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Time, 0, tempText);
+}
+
+static void _displayCurrentMode(st_KLUB *_KLUB, st_ALSN &alsn)
+{
+    wchar_t signName[32];
+    wchar_t stationName[32];
+    wchar_t distanceToCell[32];
+
+    swprintf(stationName ,L"");
+    swprintf(signName, L"");
+    swprintf(distanceToCell ,L"");
+
+    if (_KLUB->isOn >= 2)
+    {
+        if ( _KLUB->mode == KLUB_POEZDNOE )
+        {
+            _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Poezdn, 0, 1);
+            _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Manevr, 0, 0);
+            swprintf(stationName ,L"СТАНЦИЯ");
+            swprintf(signName, L"%s", alsn.signalName);
+            swprintf(distanceToCell ,L"%03d", alsn.SpeedLimit.Distance);
+        }
+        else
+        {
+            _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Poezdn, 0, 0);
+            _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Manevr, 0, 1);
+        }
+    }
+    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Station, 0, stationName);
+    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_SigName, 0, signName);
+    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_RassDoCeli, 0, distanceToCell);
+}
+
+
+static void _checkInput(st_KLUB *_KLUB)
+{
+    if (_KLUB->canReadInput == 0)
+        return;
+
+    if (_KLUB->inputKey != 0)
+    {
+        if (_KLUB->inputKey == KLUB_CMD_K)
+            _KLUB->pressed_K = 1;
+        else if ( (_KLUB->inputKey >= KLUB_0 ) && (_KLUB->inputKey <= KLUB_9 ) )
+            _addToCmd(_KLUB, (_KLUB->inputKey - KLUB_0));
+        else if (_KLUB->inputKey == KLUB_UP)
+        {
+            if (_KLUB->cmdForExec)
+            {
+                int result = _execCmd(_KLUB);
+                if (result == 1 )
+                {
+                    _KLUB->locoPtr->PostTriggerCab(SoundsID::KLUB_Beep);
+                }
+                else
+                {
+                    if (result == -1 )
+                    {
+                        _KLUB->locoPtr->PostTriggerCab(SoundsID::KLUB_Beep);
+                        _KLUB->locoPtr->PostTriggerCab(SoundsID::KLUB_Beep);
+                        _KLUB->locoPtr->PostTriggerCab(SoundsID::KLUB_Beep);
+                    }
+                }
+            }
+        }
+        else if (_KLUB->inputKey == KLUB_DOWN)
+        {
+            _KLUB->cmdForExec = 0;
+            _KLUB->pressed_K = 0;
+        }
+        _KLUB->inputKey = 0;
+        _KLUB->locoPtr->PostTriggerCab(SoundsID::KLUB_Pick);
+    }
+}
+
+static void _addToCmd(st_KLUB *_KLUB, int cifer)
+{
+    if (_KLUB->pressed_K == 0)
+        return;
+    if (_KLUB->cmdForExec > 0 )
+        _KLUB->cmdForExec = _KLUB->cmdForExec * 10;
+    _KLUB->cmdForExec = (_KLUB->cmdForExec + cifer);
+
+    //Printer_print(_KLUB->enginePtr, GMM_POST, L"Entered cifer %d cmd %d\n", cifer, _KLUB->cmdForExec);
+}
+
+static int _execCmd(st_KLUB *_KLUB)
+{
+    int retCode = -1;
+    if (_KLUB->cmdForExec == 0)
+        retCode = 0;
+    if (_KLUB->cmdForExec == 799)
+    {
+        _KLUB->mode = KLUB_MANEVR;
+       // _KLUB->speedLimit = 60;
+        retCode = 1;
+    }
+    if (_KLUB->cmdForExec == 800)
+    {
+        _KLUB->mode = KLUB_POEZDNOE;
+        retCode = 1;
+    }
+
+    _KLUB->cmdForExec = 0;
+    return retCode;
 }

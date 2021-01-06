@@ -8,6 +8,11 @@
 #include "src/ts.h"
 #include "utils.h"
 
+#include <iostream>
+#include <cctype>
+#include <cwctype>
+#include <stdexcept>
+
 void  Printer_print(Engine *eng, int dbgLevel, const wchar_t *format, ...) noexcept
 {
     va_list args;
@@ -27,16 +32,26 @@ int bitIsSet(int array, int bitNum)
     return 0;
 }
 
-void upperCase(wchar_t * sourceStr)
+void toUpper(std::basic_string<wchar_t>& s) {
+   for (std::basic_string<wchar_t>::iterator p = s.begin();
+        p != s.end(); ++p) {
+      *p = towupper(*p); // towupper is for wchar_t
+   }
+}
+
+wchar_t* upperCase(wchar_t * sourceStr, int *res)
 {
     int i = 0;
-    wchar_t c;
+   // wchar_t c;
+    *res = -1;
     while (sourceStr[i])
      {
-       c = sourceStr[i];
-       sourceStr[i] = putwchar (towupper(c));
+      // c = sourceStr[i];
+       sourceStr[i] = (wchar_t)towupper(sourceStr[i]);
        i++;
      }
+    *res = i;
+    return sourceStr;
 }
 
 en_SignColors m_getSignColor(int sig)

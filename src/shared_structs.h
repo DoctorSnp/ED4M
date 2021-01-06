@@ -46,10 +46,19 @@ typedef struct st_ALSN
 
 typedef struct st_KLUB
 {
+    int mode;
+    int speedLimit;
+    //int currCmd;
+    int cmdForExec;
+    int pressed_K;
+    int canReadInput;
+    int inputKey;
     int isOn;
     struct timeb prevTime;
     struct timeb currTime;
     Cabin *cabPtr;
+    Engine *enginePtr;
+    const Locomotive *locoPtr;
 }st_KLUB;
 
 

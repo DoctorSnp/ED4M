@@ -45,7 +45,7 @@ extern "C" bool Q_DECL_EXPORT Init
  (ElectricEngine *eng,ElectricLocomotive *loco,unsigned long State,
         float time,float AirTemperature)
 {
-    if ( ED4M_init(&SELF, loco, eng ) == false)
+    if ( ED4M_init(&SELF, loco, eng ) == 0)
         return 0;
 
 
@@ -110,7 +110,7 @@ extern "C" bool Q_DECL_EXPORT Init
      break;
  }*/
 
- SELF.dest = -1;
+// SELF.dest = -1;
  return 1;
 }
 
@@ -129,7 +129,7 @@ extern "C" void Q_DECL_EXPORT ALSN ( Locomotive *loco, SignalsInfo *sigAhead, UI
     SELF.alsn.SpeedLimit.NextLimit = (float)(NextLimit * TO_KM_PH);
     SELF.alsn.CurrSpeed = (float)( fabs(double(loco->Velocity)) * TO_KM_PH);
 
-    SELF.isBackward = (int)Backwards;
+   // SELF.isBackward = (int)Backwards;
 
     /*загружаем информацию по сигналам */
     SELF.alsn.NumSigForw = NumSigAhead;
@@ -225,7 +225,7 @@ extern "C" bool Q_DECL_EXPORT  CanSwitch(const ElectricLocomotive *loco, const E
 /**
  * Реакция на переключение элементов
  */
-extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco,ElectricEngine *eng,
+extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco, ElectricEngine *eng,
         unsigned int SwitchID,unsigned int PrevState)
 {
 
@@ -262,6 +262,19 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco,ElectricEn
     else if ( SwitchID == Tumblers::Tmb_VU )
         SELF.tumblersArray[Tumblers::Tmb_VU] = _checkSwitchWithSound(loco, Tumblers::Tmb_VU, SoundsID::VU, 1, 0);
 
+    else if ( ( SwitchID == Tumblers::Tmb_leftDoors ) || ( SwitchID == Tumblers::Tmb_rightDoors ))
+    {
+        int newDoorsState = 1;
+        if (_checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0))
+            newDoorsState = 0;
+
+       int doorsDest = DOORS_LEFT;
+       if (SwitchID == Tumblers::Tmb_rightDoors)
+            doorsDest = DOORS_RIGHT;
+
+       ED4M_SetDoorsState(&SELF, doorsDest, newDoorsState, loco);
+    }
+
     else if ( SwitchID == Tumblers::Switch_PitALSN_1 )
         SELF.tumblersArray[Tumblers::Switch_PitALSN_1] = _checkSwitchWithSound(loco, Tumblers::Switch_PitALSN_1, SoundsID::Switch, 1, 0);
     else if ( SwitchID == Tumblers::Switch_PitALSN_2 )
@@ -292,16 +305,23 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco,ElectricEn
         SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
 
 
-    /***************************************************************/
-    /*проверка кнопок */
-    else if ( ( SwitchID ==Buttons::Btn_TifonMash ) ||  (SwitchID ==Buttons::Btn_Tifon2) )
+    /**************** проверка кнопок ***********************************************/
+
+    else if ( ( SwitchID == Buttons::Btn_TifonMash ) ||  (SwitchID ==Buttons::Btn_Tifon2) )
         _checkSwitchWithSound(loco, Buttons::Btn_TifonMash, sounds::Tifon, 0, 0);
-    else if ( ( SwitchID ==Buttons::Btn_SvistokMash)  || (SwitchID ==Buttons::Btn_Svistok2) || (SwitchID ==Buttons::Btn_Svistok3 ))
+    else if ( ( SwitchID == Buttons::Btn_SvistokMash)  || (SwitchID ==Buttons::Btn_Svistok2) || (SwitchID ==Buttons::Btn_Svistok3 ))
         _checkSwitchWithSound(loco, Buttons::Btn_SvistokMash, sounds::Svistok, 0, 0);
-    else if  ( SwitchID ==Buttons::Btn_RB )
+    else if  ( SwitchID == Buttons::Btn_RB )
         _checkSwitchWithSound(loco, Buttons::Btn_RB, sounds::RB, 0, 0);
-    else if  ( SwitchID ==Buttons::Btn_RB_D )
+    else if  ( SwitchID == Buttons::Btn_RB_D )
         _checkSwitchWithSound(loco, Buttons::Btn_RB_D, sounds::RB, 0, 0);
+
+    else if (SwitchID == Tumblers::KLUB_enable_input )
+        SELF.KLUB.canReadInput = _checkSwitchWithSound(loco, SwitchID, -1, 1, 0);
+    else if ( (SwitchID >= Tumblers::KLUB_0) && ( SwitchID <= Tumblers::KLUB_CMD_K) )
+       SELF.KLUB.inputKey = SwitchID;
+
+    /**********************************************************************************/
 }
 
 

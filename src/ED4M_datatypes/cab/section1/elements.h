@@ -49,7 +49,23 @@ typedef enum sounds
     Avtomat = 191,
     VU = 192,
     RB = 25,
-    Switch = 113
+    Switch = 113,
+    DoorsOpen = 601,
+    DoorsClose = 602,
+
+    /* Звуки САУТа */
+    SAUT_PIP = 1201,
+    SAUT_GREEN = 1202,
+    SAUT_YELLOW = 1203,
+    SAUT_KY = 1204,
+    SAUT_RED = 1205,
+    SAUT_WHITE = 1206,
+
+    /*Звуки КЛУБа*/
+
+    KLUB_Beep = 1401,
+    KLUB_Pick = 1402,
+
 }SoundsID;
 
 typedef enum en_Tumblers
@@ -112,6 +128,24 @@ typedef enum en_Tumblers
     Switch_PitanieStekloobogrevLob = 66,  // +
     Switch_PitanieStekloobogrevMarshrut = 67, // +
 
+    KLUB_enable_input = 79,
+    KLUB_0 = 80,
+    KLUB_1 = 81,
+    KLUB_2 = 82,
+    KLUB32 = 83,
+    KLUB_4 = 84,
+    KLUB_5 = 85,
+    KLUB_6 = 86,
+    KLUB_7 = 87,
+    KLUB_8 = 88,
+    KLUB_9 = 89,
+    KLUB_UP = 90,
+    KLUB_DOWN = 91,
+    KLUB_CMD_P = 92,
+    KLUB_CMD_L = 93,
+    KLUB_CMD_I = 94,
+    KLUB_CMD_K = 95,
+    //KLUB_disable_input = 106,
 
 }Tumblers;
 
@@ -124,14 +158,18 @@ typedef enum en_Sensors
     Sns_BrakeLine = 4,
     Sns_PressureLine = 5,
 
-    /*КЛУБ*/
+    /*КЛУБ дисплеи*/
     Sns_KLUB_Speed1 = 23,
     Sns_KLUB_Time = 24,
     Sns_KLUB_KM = 25,
     Sns_KLUB_Station = 26,
     Sns_KLUB_SigName = 30,
     Sns_KLUB_RassDoCeli = 31,
+
+    /*КЛУБ лампы*/
+    Sns_KLUB_Poezdn = 33,
     Sns_KLUB_Manevr = 34,
+
     Sns_KLUB_Green4 = 40,
     Sns_KLUB_Green3 = 41,
     Sns_KLUB_Green2 = 42,
@@ -140,6 +178,8 @@ typedef enum en_Sensors
     Sns_KLUB_RedYellow = 45,
     Sns_KLUB_Red = 46,
     Sns_KLUB_White = 47,
+
+
 
 }Sensors;
 

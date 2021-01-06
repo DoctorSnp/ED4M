@@ -13,6 +13,9 @@
 #define SECTION_DEST_FORWARD 1
 #define SECTION_DEST_BACKWARD -1
 
+#define DOORS_LEFT 1
+#define DOORS_RIGHT 2
+
 #define TUMBLERS_MAX_ID 790
 PACKED_BEGIN
 
@@ -57,6 +60,7 @@ struct st_ServiceInfo
     float prevTIme;
     int LocoState;
     float AirTemperature;
+    float gameTime;
 };
 
 /**
@@ -65,9 +69,8 @@ struct st_ServiceInfo
 struct st_Self
 {
   st_Flags flags;
-  int isBackward;
-  int secdionCabDest;
-  int dest; // 1 ,0,  -1
+  //int isBackward;
+  int destination;
   st_Tumblers tumblers; // Это потом удалить
   int tumblersArray[TUMBLERS_MAX_ID];
   Electric elecrto;
@@ -99,9 +102,28 @@ struct st_Self
 
 PACKED_END
 
-bool ED4M_init(struct st_Self *SELF, Locomotive *loco, Engine *eng);
-//void ED4M_set_destination(st_Self *SELF, int dest);
+/**
+ * @brief ED4M_init Инициализация
+ * @param SELF Указатель на структуру со своими параметрами.
+ * @param loco Указатель на локомотив
+ * @param eng Указатель на ходовую часть
+ * @return
+ */
+int ED4M_init(struct st_Self *SELF, Locomotive *loco, Engine *eng);
+
+
 void ED4M_ALSN(struct st_Self *SELF, const Locomotive *loco);
+
+/**
+ * @brief ED4M_Step Вызывается периодически движком игры.
+ * @param SELF Указатель на структуру со своими параметрами.
+ * @param loco Указатель на локомотив
+ * @param eng Указатель на ходовую часть
+ * @param gameTime  Время игры
+ * @return Возвращает 1, если всё в норме и -1, в случае ошибок.
+ */
 int ED4M_Step(struct st_Self *SELF, const ElectricLocomotive *loco, ElectricEngine *eng, float gameTime);
+
+void ED4M_SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState, const ElectricLocomotive *loco );
 
 #endif // VL15_LOGIC_H

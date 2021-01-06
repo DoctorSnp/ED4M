@@ -1,8 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <iostream>
+#include <cctype>
+#include <cwctype>
+
+
 #include "src/ts.h"
 #include "src/shared_structs.h"
+
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
@@ -17,7 +23,8 @@ void  Printer_print(Engine *eng, int dbgLevel, const wchar_t *format, ...) noexc
 
 int bitIsSet(int array, int bitNum);
 
-void upperCase(wchar_t * sourceStr);
+void toUpper(std::basic_string<wchar_t>& s);
+wchar_t* upperCase(wchar_t * sourceStr, int *res);
 
 
 en_SignColors m_getSignColor(int sig);
