@@ -7,6 +7,8 @@
   * Модифицированная версия файла ts, ибо как сделан оригинальный - это вообще не айс!
   */
 
+#define MAX_STRING_NAME 2048
+
 #define TS_VERSION 104
 
 #define MAXSOUNDQUEUE 96

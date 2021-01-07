@@ -1,3 +1,9 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
 #ifndef ED4M_DATA_H
 #define ED4M_DATA_H
 
@@ -7,10 +13,13 @@
 #include "appliances/radiostation.h"
 #include "src/RTS/rts_data.h"
 
+#define SWITCHES_CNT 790 /*максимальный ID элемента в файле кабины. Как правило cab.sd */
+#define TUMBLERS_MAX_ID SWITCHES_CNT
+#define ARMS_MAX_ID     SWITCHES_CNT
 
-#define TUMBLERS_MAX_ID 790
 PACKED_BEGIN
 
+#define CABS_COUNT 2
 
 typedef struct st_Electric
 {
@@ -32,7 +41,8 @@ typedef struct st_game
     ElectricEngine *engPtr;
     const Cabin *cabPtr;
     float AirTemperature;
-    float time;
+    int seconds;
+    float milliseconds;
     unsigned long State;
 }st_game;
 /**
@@ -40,18 +50,17 @@ typedef struct st_game
  */
 struct st_Self
 {
-  //int destination;
+
   int tumblersArray[TUMBLERS_MAX_ID];
+  int armsArray[ARMS_MAX_ID];
   int tempFlags[TUMBLERS_MAX_ID];
+  int buttonsArray[SWITCHES_CNT];
   Electric elecrto;
   Pneumo pneumo;
   float prevVelocity;
   bool SL2M_Ticked;
   int BV_STATE;
-  int EPK;
-  int RB;
-  int MK;
-  int MV_low;
+
   st_Radiostation radio;
   int Reverse;
   unsigned int TyagaPosition;
@@ -60,8 +69,10 @@ struct st_Self
   st_ALSN alsn;
   st_timeForDebug debugTime;
   st_ServiceInfo service;
+  int cabNum;
   st_game game;
-  st_KLUB KLUB;
+
+  st_KLUB KLUB[CABS_COUNT];
 };
 
 PACKED_END

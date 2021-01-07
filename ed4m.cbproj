@@ -57,9 +57,9 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>ed4m</SanitizedProjectName>
         <ILINK_GenerateImportLibrary>true</ILINK_GenerateImportLibrary>
-        <IncludePath>src\utils\;src\;src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\utils\;D:\RTS\ED4M_abstract\;D:\RTS\ED4M_abstract\src\;$(IncludePath)</IncludePath>
+        <IncludePath>src\RTS\;src\equipment\;src\appliances\;src\utils\;src\;src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\utils\;D:\RTS\ED4M_abstract\;D:\RTS\ED4M_abstract\src\;$(IncludePath)</IncludePath>
         <_TCHARMapping>char</_TCHARMapping>
-        <ILINK_LibraryPath>src\utils\;src\;src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\utils\;D:\RTS\ED4M_abstract\;D:\RTS\ED4M_abstract\src\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <ILINK_LibraryPath>src\RTS\;src\equipment\;src\appliances\;src\utils\;src\;src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\utils\;D:\RTS\ED4M_abstract\;D:\RTS\ED4M_abstract\src\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <PackageImports>adortl;appanalytics;bcbie;bcbsmp;bindcomp;bindcompdbx;bindcompfmx;bindcompvcl;bindengine;CustomIPTransport;DataSnapClient;DataSnapCommon;DataSnapConnectors;DatasnapConnectorsFreePascal;DataSnapFireDAC;DataSnapIndy10ServerTransport;DataSnapNativeClient;DataSnapProviderClient;DataSnapServer;DataSnapServerMidas;dbexpress;dbrtl;dbxcds;DbxClientDriver;DbxCommonDriver;DBXDb2Driver;DBXFirebirdDriver;DBXInformixDriver;DBXInterBaseDriver;DBXMSSQLDriver;DBXMySQLDriver;DBXOdbcDriver;DBXOracleDriver;DBXSqliteDriver;DBXSybaseASADriver;DBXSybaseASEDriver;dsnap;dsnapcon;dsnapxml;emsedge;emshosting;FireDACADSDriver;FireDACASADriver;FireDACCommonODBC;FireDACDb2Driver;FireDACDBXDriver;FireDACDSDriver;FireDACInfxDriver;FireDACMongoDBDriver;FireDACMSAccDriver;FireDACMSSQLDriver;FireDACMySQLDriver;FireDACODBCDriver;FireDACOracleDriver;FireDACPgDriver;FireDACTDataDriver;fmx;fmxase;fmxdae;fmxFireDAC;fmxobj;ibmonitor;ibxbindings;ibxpress;IndyCore;IndyIPClient;IndyIPCommon;IndyIPServer;IndyProtocols;IndySystem;inetdb;inetdbxpress;rtl;svn;tethering;vcl;vclactnband;vcldb;vcldsnap;vclFireDAC;vclib;vclie;vclimg;VCLRESTComponents;VclSmp;vcltouch;vclwinx;vclx;xmlrtl;$(PackageImports)</PackageImports>
@@ -114,71 +114,77 @@
         <FinalOutputDir>D:\Games\RTS\TRAINS\TRAINSET\rz_ED4m-Alias\Cab\</FinalOutputDir>
     </PropertyGroup>
     <ItemGroup>
-        <None Include="ED4M.h">
-            <BuildOrder>7</BuildOrder>
+        <CppCompile Include="src\appliances\klub.cpp">
+            <BuildOrder>2</BuildOrder>
+        </CppCompile>
+        <None Include="src\appliances\klub.h">
+            <BuildOrder>3</BuildOrder>
         </None>
-        <CppCompile Include="src\ED4M.cpp">
+        <CppCompile Include="src\appliances\radiostation.cpp">
             <BuildOrder>4</BuildOrder>
         </CppCompile>
-        <None Include="src\ED4M.h">
+        <None Include="src\appliances\radiostation.h">
             <BuildOrder>5</BuildOrder>
         </None>
-        <None Include="src\ED4M_datatypes\cab\section1\elements.h">
-            <BuildOrder>10</BuildOrder>
-        </None>
-        <CppCompile Include="src\ED4M_main.cpp">
+        <CppCompile Include="src\appliances\saut.cpp">
             <BuildOrder>6</BuildOrder>
         </CppCompile>
-        <CppCompile Include="src\epk.cpp">
+        <None Include="src\appliances\saut.h">
             <BuildOrder>7</BuildOrder>
-        </CppCompile>
-        <None Include="src\epk.h">
+        </None>
+        <None Include="src\appliances\saut_datatype.h">
             <BuildOrder>8</BuildOrder>
         </None>
-        <CppCompile Include="src\klub.cpp">
-            <BuildOrder>20</BuildOrder>
-        </CppCompile>
-        <None Include="src\klub.h">
-            <BuildOrder>21</BuildOrder>
-        </None>
-        <CppCompile Include="src\private_ED4M.cpp">
-            <BuildOrder>9</BuildOrder>
-        </CppCompile>
-        <None Include="src\private_ED4M.h">
-            <BuildOrder>10</BuildOrder>
-        </None>
-        <CppCompile Include="src\radiostation.cpp">
-            <BuildOrder>11</BuildOrder>
-        </CppCompile>
-        <None Include="src\radiostation.h">
-            <BuildOrder>12</BuildOrder>
-        </None>
-        <CppCompile Include="src\saut.cpp">
-            <BuildOrder>13</BuildOrder>
-        </CppCompile>
-        <None Include="src\saut.h">
-            <BuildOrder>14</BuildOrder>
-        </None>
-        <None Include="src\saut_datatype.h">
+        <CppCompile Include="src\dll_main.cpp">
             <BuildOrder>15</BuildOrder>
-        </None>
-        <None Include="src\shared_code.h">
+        </CppCompile>
+        <CppCompile Include="src\ED4M.cpp">
             <BuildOrder>16</BuildOrder>
-        </None>
-        <None Include="src\shared_structs.h">
+        </CppCompile>
+        <None Include="src\ED4M.h">
             <BuildOrder>17</BuildOrder>
         </None>
-        <CppCompile Include="src\ts.cpp">
+        <None Include="src\elements.h">
             <BuildOrder>18</BuildOrder>
+        </None>
+        <CppCompile Include="src\equipment\brake_395.cpp">
+            <BuildOrder>21</BuildOrder>
         </CppCompile>
-        <None Include="src\ts.h">
+        <None Include="src\equipment\brake_395.h">
+            <BuildOrder>22</BuildOrder>
+        </None>
+        <None Include="src\equipment\brake_data.h">
+            <BuildOrder>23</BuildOrder>
+        </None>
+        <CppCompile Include="src\equipment\epk.cpp">
+            <BuildOrder>9</BuildOrder>
+        </CppCompile>
+        <None Include="src\equipment\epk.h">
+            <BuildOrder>10</BuildOrder>
+        </None>
+        <CppCompile Include="src\private_ED4M.cpp">
             <BuildOrder>19</BuildOrder>
+        </CppCompile>
+        <None Include="src\private_ED4M.h">
+            <BuildOrder>20</BuildOrder>
+        </None>
+        <CppCompile Include="src\RTS\ts.cpp">
+            <BuildOrder>11</BuildOrder>
+        </CppCompile>
+        <None Include="src\RTS\ts.h">
+            <BuildOrder>12</BuildOrder>
+        </None>
+        <None Include="src\shared_code.h">
+            <BuildOrder>21</BuildOrder>
+        </None>
+        <None Include="src\shared_structs.h">
+            <BuildOrder>22</BuildOrder>
         </None>
         <CppCompile Include="src\utils\utils.cpp">
-            <BuildOrder>8</BuildOrder>
+            <BuildOrder>13</BuildOrder>
         </CppCompile>
         <None Include="src\utils\utils.h">
-            <BuildOrder>9</BuildOrder>
+            <BuildOrder>14</BuildOrder>
         </None>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

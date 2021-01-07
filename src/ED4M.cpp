@@ -1,4 +1,10 @@
-﻿#include <stdio.h>
+﻿/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
+#include <stdio.h>
 #include <math.h>
 
 #include "utils/utils.h"
@@ -10,28 +16,30 @@
 
 #include "ED4M.h"
 
+constexpr float MIN_FOR_SOT = 0.2;
+
 /*******************************    Закрытые функции    *******************************/
 static void HodovayaSound(st_Self *self);
 
 static void m_osveshenie(st_Self *self, const ElectricLocomotive * loco);
 
 /**** Электрика ****/
+static void  m_checkElectro(st_Self *SELF );
 static float m_tractionForce ( st_Self *self);
-static int  m_haveElectroEmergency(st_Self *self);
-static void _checkBV(st_Self *self);
+static int   m_haveElectroEmergency(st_Self *self);
+static void  m_checkBV(st_Self *self);
 /*******************/
 
-static void m_checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng);
+static void m_checkManagement(st_Self * self);
 static void m_SetDoorsState(st_Self *SELF, int WhatDoors, int NewState );
 
-static void m_displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
+static void m_displayPult(st_Self *self);
 
 // отладочная печать раз в секунду
-static void m_debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
-
+static void m_debugStep(st_Self *self);
 /**************************************************************************************/
 
-//static SAUT saut;
+static SAUT saut;
 
 static Brake_395 kran395;
 static EPK epk;
@@ -43,16 +51,15 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     loco->HandbrakeValue=0.0;
     eng->HandbrakePercent=0.0;
     eng->DynamicBrakePercent=0;
-    eng->MainResRate=0.0;
-    eng->Sanding=0;
+    eng->MainResRate = 0.0;
+    eng->Sanding = 0;
 
-    eng->BrakeForce=0.0;
-    eng->ChargingRate =0;
-    eng->TrainPipeRate =0;
-    eng->BrakeSystemsEngaged = 1;
+    eng->BrakeForce= 0.0;
+    eng->ChargingRate = 0;
+    eng->TrainPipeRate = 0;
 
-    eng->AuxilaryRate=0.0;
-    eng->ALSNOn=0;
+    eng->AuxilaryRate = 0.0;
+    eng->ALSNOn  =0;
 
     eng->EPTvalue = 0.0;
     eng->Reverse = 0;
@@ -72,13 +79,18 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     loco->MainResPressure = 8.0;
     loco->TrainPipePressure = 5.0;
     loco->AuxiliaryPressure = 5.2;
-    //saut.init();
+    saut.init();
     kran395.init();
-    KLUB_init(&SELF->KLUB);
+    KLUB_init(&SELF->KLUB[0]);
+    KLUB_init(&SELF->KLUB[0]);
+
     Radiostation_Init(&SELF->radio);
 
     for (int i =0; i< TUMBLERS_MAX_ID; i++)
         SELF->tumblersArray[i] = _checkSwitch(loco, i, -1, 1, 0);
+
+    for (int i =0; i< ARMS_MAX_ID; i++)
+        SELF->armsArray[i] = _checkSwitch(loco, i, -1, 1, 0);
 
     return 0;
 }
@@ -87,41 +99,43 @@ void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
 {
     SELF->alsn.PrevSpeed = SELF->prevVelocity;
 
-    static int prevEpk = SELF->EPK;
-    if ( prevEpk != SELF->EPK)
+    static int prevEpk = SELF->tumblersArray[Tumblers::Key_EPK];
+    if ( prevEpk != SELF->tumblersArray[Tumblers::Key_EPK])
     {
-      /*  if (prevEpk == 0)
+        if (prevEpk == 0)
             saut.start(loco, loco->Eng(), &SELF->alsn);
         else
-            saut.stop(loco, loco->Eng());*/
-        prevEpk = SELF->EPK;
+            saut.stop(loco, loco->Eng());
+        prevEpk = SELF->tumblersArray[Tumblers::Key_EPK];
     }
     else
     {
-       // if (SELF->RB)
-            //epk.okey(loco);
-       // int sautState = saut.step(loco, loco->Eng(), &SELF->alsn);
-      /*  int currEpkState = epk.step(loco, sautState );
+        if (SELF->buttonsArray[Buttons::Btn_RB])
+            epk.okey(loco);
+        int sautState = saut.step(loco, loco->Eng(), &SELF->alsn);
+        int currEpkState = epk.step(loco, sautState );
         if ( currEpkState )
         {
-            if (!SELF->flags.EPK_Triggered)
-                _setBrakePosition(7, loco, loco->Eng(), SELF);
-            SELF->flags.EPK_Triggered = 1;
-        }*/
+            //if (!SELF->flags.EPK_Triggered)
+            //    _setBrakePosition(7, loco, loco->Eng(), SELF);
+            //SELF->flags.EPK_Triggered = 1;
+        }
     }
 
     if ( (SELF->tumblersArray[Tumblers::Switch_PitALSN_1]) && (SELF->tumblersArray[Tumblers::Switch_PitALSN_2]) )
     {
         loco->Eng()->ALSNOn = 1;
         if (SELF->tumblersArray[Tumblers::Key_EPK] )
-            KLUB_setState(&SELF->KLUB, 2);
+            KLUB_setState(&SELF->KLUB[SELF->cabNum - 1], 2);
         else
-            KLUB_setState(&SELF->KLUB, 1);
+            KLUB_setState(&SELF->KLUB[SELF->cabNum -1], 1);
     }
     else
-         KLUB_setState(&SELF->KLUB, 0);
+         KLUB_setState(&SELF->KLUB[SELF->cabNum], 0);
 
-    KLUB_Step(&SELF->KLUB, loco->Eng(), SELF->alsn, loco);
+    SELF->KLUB[SELF->cabNum -1].seconds = SELF->game.seconds;
+    SELF->KLUB[SELF->cabNum -1].milliseconds = SELF->game.milliseconds;
+    KLUB_Step(&SELF->KLUB[SELF->cabNum -1], loco->Eng(), SELF->alsn, loco);
 
 }
 
@@ -131,14 +145,20 @@ int ED4M_Step(st_Self *SELF )
     ElectricEngine *eng = SELF->game.engPtr;
     const ElectricLocomotive *loco = SELF->game.locoPtr;
 
-    kran395.step(SELF->pneumo.Arm_395, loco, eng, SELF->game.time);
-
     if(loco->NumSlaves&&(loco->LocoFlags&1))
     {
         isMainSect = 1;
-        wchar_t parameter[32];
-        swprintf_s(parameter, sizeof (parameter), L"%s", "cabNum");
-        SELF->service.cabNum =  loco->GetParameter(parameter, 44);
+        int cabNum =  (int)loco->GetParameter( (wchar_t*)(L"CabNum"), 0.0);
+        if (SELF->cabNum != cabNum)
+        {
+            if (SELF->cabNum != 0)
+                Printer_print(eng, GMM_POST, L"Change Cabin from %d to %d", SELF->cabNum);
+            SELF->cabNum = cabNum;
+        }
+        if (SELF->cabNum < 1)
+            SELF->cabNum = 1;
+        if ( SELF->cabNum > CABS_COUNT )
+            SELF->cabNum = CABS_COUNT;
     }
 
     if (!isMainSect)
@@ -148,31 +168,17 @@ int ED4M_Step(st_Self *SELF )
         return 1;
     }
 
-    _checkBV(SELF);
+    int brake = 0;
+    setBitState((char*)&brake, 0, SELF->armsArray[Arms::Arm_395_TM_Control]);
+    setBitState((char*)&brake, 1, SELF->armsArray[Arms::Arm_395_NM_Control]);
+    kran395.step(SELF->pneumo.Arm_395, loco, eng, SELF->game.milliseconds, brake);
 
     /*Грузим данные из движка себе в МОЗГИ*/
-    SELF->elecrto.LineVoltage =  loco->LineVoltage;
 
-    if (SELF->tumblersArray[Tumblers::Switch_Panto] && SELF->tumblersArray[Tumblers::Tmb_PantoUP] )
-    {
-        if (!SELF->elecrto.PantoRaised)
-        {
-            SELF->elecrto.PantoRaised = 0xff;
-            loco->PostTriggerCab(SoundsID::TP_UP);
-        }
-    }
-    else if (SELF->tumblersArray[Tumblers::Tmb_PantoDown] || !SELF->tumblersArray[Tumblers::Switch_Panto] )
-    {
-        if (SELF->elecrto.PantoRaised)
-        {
-            SELF->elecrto.PantoRaised = 0x0;
-            loco->PostTriggerCab(SoundsID::TP_DOWN);
-        }
-    }
-
+    m_checkElectro(SELF);
     /*Работаем в своём соку*/
-    m_checkManagement(SELF, loco, eng);
-    m_displayPult(SELF, loco, eng);
+    m_checkManagement(SELF);
+    m_displayPult(SELF);
     m_osveshenie(SELF, loco);
 
     SELF->radio.isActive = SELF->tumblersArray[Tumblers::Switch_Radio];
@@ -189,9 +195,10 @@ int ED4M_Step(st_Self *SELF )
     else
         SetForce *= 34000.0;
 
-    for (UINT i =0; i < loco->NumSlaves-1; i++)
-            loco->Slaves[i]->Eng()->Force = (-SetForce) * (eng->Reverse);
-    m_debugStep(SELF, loco, eng);
+    for (UINT i =0; i < loco->NumSlaves; i++)
+        loco->Slaves[i]->Eng()->Force = (-SetForce) * (eng->Reverse);
+
+    m_debugStep(SELF);
     return 1;
 }
 
@@ -232,8 +239,6 @@ static void m_SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState)
 
 /**
  * @brief HodovayaSound Озвучка ходовой части
- * @param loco
- * @param eng
  * @param self
  */
 static void HodovayaSound(st_Self *self)
@@ -274,7 +279,7 @@ static float m_tractionForce ( st_Self *self)
     return startForce;
 }
 
-static void m_checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng)
+static void m_checkManagement(st_Self * self)
 {
    // Cabin *cab = loco->cab;
 
@@ -310,60 +315,94 @@ static void m_osveshenie( st_Self *self, const ElectricLocomotive * loco)
 
 }
 
-static void _checkBV(st_Self *self)
+
+static void m_checkElectro(st_Self *SELF )
 {
-    if (m_haveElectroEmergency(self) )
+    const ElectricLocomotive *loco = SELF->game.locoPtr;
+    SELF->elecrto.LineVoltage =  loco->LineVoltage;
+
+    m_checkBV(SELF);
+
+    if (SELF->tumblersArray[Tumblers::Switch_Panto] && SELF->tumblersArray[Tumblers::Tmb_PantoUP] )
     {
-        if (self->game.engPtr->MainSwitch)
+        if (!SELF->elecrto.PantoRaised)
         {
-            self->game.engPtr->MainSwitch = 0;
-            self->BV_STATE = 0;
+            SELF->elecrto.PantoRaised = 0xff;
+            loco->PostTriggerCab(SoundsID::TP_UP);
         }
     }
-
-    if (self->tumblersArray[Tumblers::Tmb_vozvrZash])
+    else if (SELF->tumblersArray[Tumblers::Tmb_PantoDown] || !SELF->tumblersArray[Tumblers::Switch_Panto] )
     {
-        if (self->BV_STATE < 1)
-            self->BV_STATE = 1;
-    }
-    else
-    {
-        if (!self->tumblersArray[Tumblers::Tmb_vozvrZash])
-            if ( self->BV_STATE == 1 )
-                self->game.engPtr->MainSwitch = 1;
+        if (SELF->elecrto.PantoRaised)
+        {
+            SELF->elecrto.PantoRaised = 0x0;
+            loco->PostTriggerCab(SoundsID::TP_DOWN);
+            SELF->game.engPtr->MainSwitch = 0;
+            SELF->BV_STATE = 0;
+        }
     }
 }
 
+/**
+ * @brief m_checkBV Проверка БВ
+ */
+static void m_checkBV(st_Self *SELF)
+{
+    if (m_haveElectroEmergency(SELF) )
+    {
+        if (SELF->game.engPtr->MainSwitch)
+        {
+            SELF->game.engPtr->MainSwitch = 0;
+            SELF->BV_STATE = 0;
+        }
+    }
+
+    if (SELF->tumblersArray[Tumblers::Tmb_vozvrZash])
+    {
+        if (SELF->BV_STATE < 1)
+            SELF->BV_STATE = 1;
+    }
+    else
+    {
+        if (!SELF->tumblersArray[Tumblers::Tmb_vozvrZash])
+            if ( SELF->BV_STATE == 1 )
+                SELF->game.engPtr->MainSwitch = 1;
+    }
+}
+
+/**
+ * @brief m_haveElectroEmergency Если какие-то неисправности в электрике
+ * @return
+ */
 static int m_haveElectroEmergency(st_Self *self)
 {
     return 0;
 }
 
+
+
 /**
  * @brief _debugPrint
- * @param loco
- * @param eng
- * @param self
  */
-static void m_debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
+static void m_debugStep(st_Self *self)
 {
     ftime(&self->debugTime.currTime);
     if ((self->debugTime.prevTime.time + 1) > self->debugTime.currTime.time)
         return;
 
-    //Printer_print(eng, GMM_POST, L"CabinNum %d\n", self->service.cabNum);
+    //Printer_print(eng, GMM_POST, L"BrakeState %d\n", brake);
     self->debugTime.prevTime = self->debugTime.currTime;
 }
 
 /**
  * @brief _displayPult Показывает манометры и лампы на пульте
- * @param self
- * @param loco
- * @param eng
  */
-static void m_displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
+static void m_displayPult(st_Self *self)
 {
+    const ElectricLocomotive *loco = self->game.locoPtr;
+    ElectricEngine *eng = self->game.engPtr;
     Cabin *cab = loco->cab;
+
 
     cab->SetDisplayValue(Sensors::Sns_Voltage, loco->LineVoltage );
     cab->SetDisplayValue(Sensors::Sns_BrakeCil, loco->BrakeCylinderPressure );
@@ -372,8 +411,8 @@ static void m_displayPult(st_Self *self, const ElectricLocomotive *loco, Electri
     cab->SetDisplayValue(Sensors::Sns_PressureLine, loco->ChargingPipePressure);
 
     int canLight = self->tumblersArray[Tumblers::Switch_VU] && self->tumblersArray[Tumblers::Switch_AutomatUpr];
-    cab->SetDisplayState(Lamps::Lmp_SOT, canLight );
-    cab->SetDisplayState(Lamps::Lmp_SOT_X, canLight );
+    cab->SetDisplayState(Lamps::Lmp_SOT, canLight && (loco->BrakeCylinderPressure >= MIN_FOR_SOT) );
+    cab->SetDisplayState(Lamps::Lmp_SOT_X, canLight && (loco->BrakeCylinderPressure >= MIN_FOR_SOT) );
     cab->SetDisplayState(Lamps::Lmp_RN, canLight );
     cab->SetDisplayState(Lamps::Lmp_VspomCepi, canLight );
     cab->SetDisplayState(Lamps::Lmp_RNDK, canLight );

@@ -1,3 +1,9 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
 #ifndef RTS_DATA_H
 #define RTS_DATA_H
 
@@ -19,7 +25,6 @@ typedef struct st_Pneumo
 
 struct st_ServiceInfo
 {
-    int cabNum;
     float currTime;
     float prevTIme;
 };

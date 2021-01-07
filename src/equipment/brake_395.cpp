@@ -1,5 +1,9 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
 
-#include "src/elements.h"
 #include "brake_395.h"
 
 #define BRAKE_STR_RATE 1.8
@@ -12,18 +16,37 @@
 #define PIPE_DISCHARGE_SLOW -0.005
 #define UR_DISCHARGE2     0.003
 
+/**
+ * @brief The Brake_395_Sounds enum Номера звуков в sms файле.
+ */
+enum Brake_395_Sounds
+{
+    newPos = 193,
+    Kran395_Otpusk = 500,
+    Kran395_Poezdnoe = 502,
+    Kran395_Slugebnoe = 504,
+    Kran395_Extrennoe = 508,
+};
+
 Brake_395::Brake_395()
-{}
+{
+    m_data.m_currPos = -1;
+    m_data.m_prevPos = -1;
+}
 
 int Brake_395::init()
 {
     return 0;
 }
 
-void Brake_395::step(int pos, const Locomotive *loco, Engine *eng, float gameTime)
+void Brake_395::step(int pos, const Locomotive *loco, Engine *eng, float millisec, int BrakeControlState)
 {
-    m_checkBrake(pos, loco, eng, gameTime);
-    m_soundBrake(pos, loco);
+    m_eng = eng;
+    m_loco = loco;
+    m_data.m_currPos = pos;
+    m_eng->BrakeSystemsEngaged = BrakeControlState;
+    m_checkBrake( millisec);
+    m_soundBrake();
 }
 
 const st_Brake_395& Brake_395::constData()
@@ -31,100 +54,102 @@ const st_Brake_395& Brake_395::constData()
     return m_data;
 }
 
-void Brake_395::m_checkBrake(int pos, const Locomotive *loco, Engine *eng, float gameTime)
+/**
+ * @brief Brake_395::m_checkBrake Алгоритм расчёта значений пневматики
+ */
+void Brake_395::m_checkBrake( float gameTime)
 {
 
-    eng->MainResRate = 0.04*(11.0-loco->MainResPressure);
+    m_eng->MainResRate = 0.04*(11.0-m_loco->MainResPressure);
 
     //Train brake
-    eng->TrainPipeRate = 0.0;
-    if( !(loco->LocoFlags&1))
+    m_eng->TrainPipeRate = 0.0;
+    if( !(m_loco->LocoFlags&1))
         return;
 
-    //Printer_print(eng, GMM_POST, L"Braking: %d\n GameTime %f", self->pneumo.Arm_395, self->service.gameTime);
-    switch(pos){
+    switch(m_data.m_currPos ){
     case 0:
-        if(eng->var[5]<45.0)
+        if(m_eng->var[5]<45.0)
         {
             //if(!cab->Switches[3].SetState)
-            eng->UR += BRAKE_UR_RATE_CHARGE * gameTime;
-            if(eng->UR > loco->MainResPressure)
+            m_eng->UR += BRAKE_UR_RATE_CHARGE * gameTime;
+            if(m_eng->UR > m_loco->MainResPressure)
             {
-                eng->UR=loco->MainResPressure;
+                m_eng->UR = m_loco->MainResPressure;
 
             }
-            if(loco->TrainPipePressure < eng->UR)
-                eng->TrainPipeRate=(eng->UR-loco->TrainPipePressure)*1.5;
+            if(m_loco->TrainPipePressure < m_eng->UR)
+               m_eng->TrainPipeRate=( m_eng->UR - m_loco->TrainPipePressure)*1.5;
          }
         break;
     case 1:
-        if(eng->var[5]<45.0)
+        if(m_eng->var[5]<45.0)
         {
-            if(eng->UR<5.0)
+            if(m_eng->UR<5.0)
             {
-                float rate=(loco->MainResPressure-eng->UR)*2.0;
+                float rate=(m_loco->MainResPressure - m_eng->UR)*2.0;
                 if(rate<0.0)rate=0.0;
                 if(rate>BRAKE_UR_RATE_CHARGE)rate=BRAKE_UR_RATE_CHARGE;
-                eng->UR+=rate * gameTime;
+                m_eng -> UR+=rate * gameTime;
             }
             else
-                if(loco->BrakeCylinderPressure>0.0&&(eng->UR-loco->TrainPipePressure)<0.1)
-                    eng->UR+=0.15 * gameTime;
-            if(eng->UR>loco->MainResPressure)
-                eng->UR=loco->MainResPressure;
-            if(eng->UR>loco->TrainPipePressure)
-                eng->UR-=0.003 * gameTime;
-            if(loco->TrainPipePressure<eng->UR-0.01)
-                eng->TrainPipeRate=(eng->UR-loco->TrainPipePressure)/BRAKE_PIPE_RATE_CHARGE;
-            else if(loco->TrainPipePressure>eng->UR)
+                if(m_loco->BrakeCylinderPressure>0.0&&(m_eng->UR - m_loco->TrainPipePressure)<0.1)
+                    m_eng->UR += 0.15 * gameTime;
+            if(m_eng->UR>m_loco->MainResPressure)
+                m_eng->UR=m_loco->MainResPressure;
+            if(m_eng->UR>m_loco->TrainPipePressure)
+                m_eng->UR-=0.003 * gameTime;
+            if(m_loco->TrainPipePressure<m_eng->UR-0.01)
+                m_eng->TrainPipeRate=(m_eng->UR-m_loco->TrainPipePressure)/BRAKE_PIPE_RATE_CHARGE;
+            else if(m_loco->TrainPipePressure>m_eng->UR)
             {
-                eng->TrainPipeRate=(eng->UR-loco->TrainPipePressure)/BRAKE_PIPE_RATE_CHARGE;
-                if(eng->TrainPipeRate<-BRAKE_PIPE_RATE)
-                    eng->TrainPipeRate=-BRAKE_PIPE_RATE;
+                m_eng->TrainPipeRate=(m_eng->UR-m_loco->TrainPipePressure)/BRAKE_PIPE_RATE_CHARGE;
+                if(m_eng->TrainPipeRate<-BRAKE_PIPE_RATE)
+                    m_eng->TrainPipeRate=-BRAKE_PIPE_RATE;
             }
         }
         break;
     case 2:
-        if(eng->UR>loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(loco->TrainPipePressure>eng->UR)
-            eng->TrainPipeRate=eng->UR-loco->TrainPipePressure;
-        if(eng->TrainPipeRate<-BRAKE_PIPE_RATE)
-            eng->TrainPipeRate=-BRAKE_PIPE_RATE;
-        if(eng->TrainPipeRate>PIPE_DISCHARGE_SLOW)
-            eng->TrainPipeRate=PIPE_DISCHARGE_SLOW;
+        if(m_eng->UR>m_loco->MainResPressure)
+            m_eng->UR=m_loco->MainResPressure;
+        if(m_loco->TrainPipePressure>m_eng->UR)
+            m_eng->TrainPipeRate=m_eng->UR-m_loco->TrainPipePressure;
+        if(m_eng->TrainPipeRate<-BRAKE_PIPE_RATE)
+            m_eng->TrainPipeRate=-BRAKE_PIPE_RATE;
+        if(m_eng->TrainPipeRate>PIPE_DISCHARGE_SLOW)
+            m_eng->TrainPipeRate=PIPE_DISCHARGE_SLOW;
 
         break;
     case 3:
-        if(eng->UR>loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(loco->TrainPipePressure>eng->UR)
-            eng->TrainPipeRate=eng->UR-loco->TrainPipePressure;
-        else if(eng->UR-loco->TrainPipePressure>0.1)
-            eng->TrainPipeRate=0.05;
-        if(eng->TrainPipeRate<-BRAKE_PIPE_RATE)
-            eng->TrainPipeRate=-BRAKE_PIPE_RATE;
+        if(m_eng->UR>m_loco->MainResPressure)
+            m_eng->UR=m_loco->MainResPressure;
+        if(m_loco->TrainPipePressure>m_eng->UR)
+            m_eng->TrainPipeRate=m_eng->UR-m_loco->TrainPipePressure;
+        else if(m_eng->UR-m_loco->TrainPipePressure>0.1)
+            m_eng->TrainPipeRate=0.05;
+        if(m_eng->TrainPipeRate<-BRAKE_PIPE_RATE)
+            m_eng->TrainPipeRate=-BRAKE_PIPE_RATE;
 
         break;
     case 4:
         //if(cab->Switches[3].SetState!=4)
         // break;
-        eng->UR-=0.3  * gameTime;
-        if(eng->UR>loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(eng->UR<0)
-            eng->UR=0;
-        eng->TrainPipeRate=-0.25;
+        m_eng->UR-=0.3  * gameTime;
+        if(m_eng->UR>m_loco->MainResPressure)
+            m_eng->UR=m_loco->MainResPressure;
+        if(m_eng->UR<0)
+            m_eng->UR=0;
+        m_eng->TrainPipeRate=-0.25;
 
 
         break;
     case 5:
-        eng->UR+=BRAKE_PIPE_EMERGENCY  *1.2 * gameTime;
-        if(eng->UR > loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(eng->UR<0)
-            eng->UR=0;
-        eng->TrainPipeRate = BRAKE_PIPE_EMERGENCY;
+        m_eng->UR+=BRAKE_PIPE_EMERGENCY  *1.2 * gameTime;
+        if(m_eng->UR > m_loco->MainResPressure)
+            m_eng->UR=m_loco->MainResPressure;
+        if(m_eng->UR<0)
+            m_eng->UR=0;
+        m_eng->TrainPipeRate = BRAKE_PIPE_EMERGENCY;
         break;
     default:
         break;
@@ -132,29 +157,33 @@ void Brake_395::m_checkBrake(int pos, const Locomotive *loco, Engine *eng, float
 
 }
 
-void Brake_395::m_soundBrake(int pos, const Locomotive *loco)
+/**
+ * @brief Brake_395::m_soundBrake Просто озвучка крана
+ */
+void Brake_395::m_soundBrake()
 {
-    if (m_prevPos != pos)
+    if (m_data.m_prevPos != m_data.m_currPos )
     {
-        if (m_prevPos == 0)
-            loco->PostTriggerCab(SoundsID::Kran395_Otpusk + 1);
+        m_loco->PostTriggerCab(Brake_395_Sounds::newPos);
+        if (m_data.m_prevPos == 0)
+            m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Otpusk + 1);
 
-        else if ( (m_prevPos == 4) || (m_prevPos == 5) )
-           loco->PostTriggerCab(SoundsID::Kran395_Slugebnoe + 1);
-        else if  (m_prevPos == 6)
-           loco->PostTriggerCab(SoundsID::Kran395_Extrennoe + 1);
+        else if ( (m_data.m_prevPos == 4) || (m_data.m_prevPos == 5) )
+           m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Slugebnoe + 1);
+        else if  (m_data.m_prevPos == 6)
+           m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Extrennoe + 1);
 
-        if (pos == 0)
-            loco->PostTriggerCab(SoundsID::Kran395_Otpusk);
-        else if (pos == 1)
+        if (m_data.m_currPos  == 0)
+            m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Otpusk);
+        else if (m_data.m_currPos  == 1)
         {
-            if (m_prevPos == 0)
-                loco->PostTriggerCab(SoundsID::Kran395_Poezdnoe);
+            if (m_data.m_prevPos == 0)
+                m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Poezdnoe);
         }
-        else if ( (pos == 4) || (pos == 5) )
-            loco->PostTriggerCab(SoundsID::Kran395_Slugebnoe);
-        else if  (pos == 6)
-            loco->PostTriggerCab(SoundsID::Kran395_Extrennoe);
-        m_prevPos = pos;
+        else if ( (m_data.m_currPos  == 4) || (m_data.m_currPos  == 5) )
+            m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Slugebnoe);
+        else if  (m_data.m_currPos  == 6)
+            m_loco->PostTriggerCab(Brake_395_Sounds::Kran395_Extrennoe);
+        m_data.m_prevPos = m_data.m_currPos ;
     }
 }

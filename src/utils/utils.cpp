@@ -1,10 +1,10 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
 
 //#define _CRT_SECURE_NO_WARNINGS
-
-
-//#include <errno.h>
-//#include <string.h>
-
 
 #include "utils.h"
 
@@ -34,6 +34,15 @@ int bitIsSet(int array, int bitNum)
     return 0;
 }
 
+void setBitState(char* array, int bitNum, int whatDo)
+{
+    if (whatDo)
+        *array |= 1UL << bitNum;
+    else
+        *array &= ~(1UL << bitNum);
+}
+
+
 SignColors m_getSignColor(int sig)
 {
     if ( (sig == SIGASP_CLEAR_1 ) || (sig == SIGASP_CLEAR_2) )
@@ -50,9 +59,25 @@ SignColors m_getSignColor(int sig)
         return SignColors::COLOR_WHITE;
 }
 
-int getDistanceToCell(st_ALSN &alsn)
+int svetoforDistance(st_ALSN &alsn, int numSign)
 {
-    int distance = 0;
+    int sigNum = 1;
+    for (int i = 0; i < alsn.NumSigForw &&  i< SIGNALS_CNT; i++ )
+    {
+       if ( CHECK_BIT(alsn.ForwardSignalsList[i].Flags, 3) )
+           continue;
+       if ( CHECK_BIT(alsn.ForwardSignalsList[i].Flags, 1) )
+           continue;
+        if (sigNum == numSign)
+            return (int)alsn.ForwardSignalsList[i].Distance;
+        sigNum++; // иначе ищем следующий
+
+    }
+    return  -1;
+}
+
+wchar_t * svetoforName(st_ALSN &alsn)
+{
     for (int i = 0; i < alsn.NumSigForw &&  i< SIGNALS_CNT; i++ )
     {
        if ( CHECK_BIT(alsn.ForwardSignalsList[i].Flags, 3) )
@@ -60,12 +85,11 @@ int getDistanceToCell(st_ALSN &alsn)
        if ( CHECK_BIT(alsn.ForwardSignalsList[i].Flags, 1) )
            continue;
 
-        distance = (int)alsn.ForwardSignalsList[i].Distance;
-        break;
+       return alsn.ForwardSignalsList[i].SignalInfo->Name;
     }
-    return  distance;
-
+    return NULL;
 }
+
 
 int m_getSignCode( st_ALSN *alsn)
 {
@@ -89,4 +113,25 @@ int m_getSignCode( st_ALSN *alsn)
     if (IS_RED(alsn->ForwardSignalsList[alsn->NumSigForw-1].Aspect[0]))
         return SIGASP_STOP ;
     return  SIGASP_RESTRICTING;
+}
+
+wchar_t *stationName(const Locomotive *loco, float distance)
+{
+    TrackItemsItem *itemsList;
+    UINT objsCount = 0;
+    static UINT prevID = 0;
+    loco->GetTrackItems(1, distance, itemsList, objsCount);
+    for (UINT i =0; i < objsCount; i++)
+    {
+        if (itemsList[i].obj->ID != prevID)
+        {
+            prevID = itemsList[i].obj->ID;
+            if ( itemsList[i].obj->Type == TIT_PLATF )
+            {
+                PlatformItem* plat = (PlatformItem*)itemsList[0].obj;
+                return plat->StationName;
+            }
+        }
+    }
+    return NULL;
 }
