@@ -1,7 +1,7 @@
 #ifndef SAUT_DATATYPE_H
 #define SAUT_DATATYPE_H
 
-#include "shared_structs.h"
+#include "src/shared_structs.h"
 #include "sys/timeb.h"
 
 #ifdef __cplusplus

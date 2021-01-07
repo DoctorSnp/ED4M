@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 
-typedef enum en_SignColors
+typedef enum SignColors
 {
   UNSET = -1,
   COLOR_WHITE = 0,
@@ -21,7 +21,7 @@ typedef enum en_SignColors
   COLOR_YELLOW = 3,
   COLOR_GREEN = 4,
 
-}en_SignColors;
+}SignColors;
 
 
 
@@ -40,26 +40,8 @@ typedef struct st_ALSN
  SignalsInfo signListPassed;
  SignalsInfo ForwardSignalsList[SIGNALS_CNT];
  wchar_t signalName[MAX_STRING_NAME];
+ bool isBackward;
 }st_ALSN;
-
-
-
-typedef struct st_KLUB
-{
-    int mode;
-    int speedLimit;
-    //int currCmd;
-    int cmdForExec;
-    int pressed_K;
-    int canReadInput;
-    int inputKey;
-    int isOn;
-    struct timeb prevTime;
-    struct timeb currTime;
-    Cabin *cabPtr;
-    Engine *enginePtr;
-    const Locomotive *locoPtr;
-}st_KLUB;
 
 
 PACKED_END

@@ -1,17 +1,19 @@
 
 //#define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
-#include <conio.h>
-#include <errno.h>
-#include <string.h>
-#include <wctype.h>
-#include "src/ts.h"
+
+
+//#include <errno.h>
+//#include <string.h>
+
+
 #include "utils.h"
 
-#include <iostream>
+#include <stdio.h>
+#include <conio.h>
+#include <wctype.h>
 #include <cctype>
 #include <cwctype>
-#include <stdexcept>
+
 
 void  Printer_print(Engine *eng, int dbgLevel, const wchar_t *format, ...) noexcept
 {
@@ -32,42 +34,37 @@ int bitIsSet(int array, int bitNum)
     return 0;
 }
 
-void toUpper(std::basic_string<wchar_t>& s) {
-   for (std::basic_string<wchar_t>::iterator p = s.begin();
-        p != s.end(); ++p) {
-      *p = towupper(*p); // towupper is for wchar_t
-   }
-}
-
-wchar_t* upperCase(wchar_t * sourceStr, int *res)
-{
-    int i = 0;
-   // wchar_t c;
-    *res = -1;
-    while (sourceStr[i])
-     {
-      // c = sourceStr[i];
-       sourceStr[i] = (wchar_t)towupper(sourceStr[i]);
-       i++;
-     }
-    *res = i;
-    return sourceStr;
-}
-
-en_SignColors m_getSignColor(int sig)
+SignColors m_getSignColor(int sig)
 {
     if ( (sig == SIGASP_CLEAR_1 ) || (sig == SIGASP_CLEAR_2) )
-        return en_SignColors::COLOR_GREEN;
+        return SignColors::COLOR_GREEN;
     else if ( (sig == SIGASP_APPROACH_1) || (sig == SIGASP_APPROACH_2) || (sig == SIGASP_APPROACH_3) )
-        return en_SignColors::COLOR_YELLOW;
+        return SignColors::COLOR_YELLOW;
     else if (sig == SIGASP_STOP_AND_PROCEED)
-        return en_SignColors::COLOR_RD_YEL;
+        return SignColors::COLOR_RD_YEL;
     else if (sig == SIGASP_RESTRICTING)
-        return en_SignColors::COLOR_WHITE;
+        return SignColors::COLOR_WHITE;
     else if ((sig == SIGASP_STOP) ||  (SIGASP_BLOCK_OBSTRUCTED))
-        return en_SignColors::COLOR_RED;
+        return SignColors::COLOR_RED;
     else
-        return en_SignColors::COLOR_WHITE;
+        return SignColors::COLOR_WHITE;
+}
+
+int getDistanceToCell(st_ALSN &alsn)
+{
+    int distance = 0;
+    for (int i = 0; i < alsn.NumSigForw &&  i< SIGNALS_CNT; i++ )
+    {
+       if ( CHECK_BIT(alsn.ForwardSignalsList[i].Flags, 3) )
+           continue;
+       if ( CHECK_BIT(alsn.ForwardSignalsList[i].Flags, 1) )
+           continue;
+
+        distance = (int)alsn.ForwardSignalsList[i].Distance;
+        break;
+    }
+    return  distance;
+
 }
 
 int m_getSignCode( st_ALSN *alsn)
@@ -79,7 +76,6 @@ int m_getSignCode( st_ALSN *alsn)
        if ( CHECK_BIT(alsn->ForwardSignalsList[i].Flags, 1) )
            continue;
 
-       //alsn->SpeedLimit.Distance = (int)alsn->ForwardSignalsList[i].Distance;
        if (IS_KG(alsn->ForwardSignalsList[i].Aspect[0]))
             return SIGASP_STOP_AND_PROCEED;
        else if (IS_YELLOW(alsn->ForwardSignalsList[i].Aspect[0]))

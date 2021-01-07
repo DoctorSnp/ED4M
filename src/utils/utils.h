@@ -6,7 +6,7 @@
 #include <cwctype>
 
 
-#include "src/ts.h"
+#include "ts.h"
 #include "src/shared_structs.h"
 
 
@@ -23,11 +23,10 @@ void  Printer_print(Engine *eng, int dbgLevel, const wchar_t *format, ...) noexc
 
 int bitIsSet(int array, int bitNum);
 
-void toUpper(std::basic_string<wchar_t>& s);
-wchar_t* upperCase(wchar_t * sourceStr, int *res);
-
-
-en_SignColors m_getSignColor(int sig);
+int getDistanceToCell(st_ALSN &alsn);
 int m_getSignCode(st_ALSN *alsn);
+
+SignColors m_getSignColor(int sig);
+
 
 #endif // UTILS_H

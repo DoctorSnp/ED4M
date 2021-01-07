@@ -3,7 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include "utils/utils.h"
+#include "src/utils/utils.h"
 #include "radiostation.h"
 
 #define REPEAT_SECONDS 120 // через сколько секунд повторять следующую реплику

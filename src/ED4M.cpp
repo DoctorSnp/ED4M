@@ -1,47 +1,36 @@
-﻿#include <sys/timeb.h>
+﻿//#define __STDIO_H
 #include <stdio.h>
-#include <wchar.h>
-#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES 1
-#define _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT 1
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <crtdbg.h>  // For _CrtSetReportMode
-#include <errno.h>
-
+#include <math.h>
 #include "utils/utils.h"
-#include "epk.h"
-#include "saut.h"
-#include "klub.h"
-#include "math.h"
-#include "ED4M.h"
+#include "equipment/epk.h"
+#include "appliances/saut.h"
+#include "appliances/klub.h"
+#include "private_ED4M.h"
+#include "src/equipment/brake_395.h"
 
-#define BRAKE_STR_RATE 1.8
-#define TR_CURRENT_C 272.0
-#define BRAKE_MR_RATIO    0.005
-#define BRAKE_PIPE_RATE_CHARGE 2.5
-#define BRAKE_UR_RATE_CHARGE   0.3
-#define BRAKE_PIPE_RATE 0.4
-#define BRAKE_PIPE_EMERGENCY -1.2
-#define PIPE_DISCHARGE_SLOW -0.005
-#define UR_DISCHARGE2     0.003
+#include "ED4M.h"
 
 
 /*** Закрытые функции ***/
-static void HodovayaSound(const ElectricLocomotive *loco, ElectricEngine *eng, st_Self *self);
-static int m_getDest(st_Self *self);
+static void HodovayaSound(st_Self *self);
 
 static float m_tractionForce ( st_Self *self);
-static void _osveshenie(const ElectricLocomotive * loco, st_Self *self);
-static void _checkBrake(const ElectricLocomotive * loco, ElectricEngine *eng, st_Self *self);
+static void _osveshenie(st_Self *self, const ElectricLocomotive * loco);
+static int _haveElectroEmergency(st_Self *self);
+static void _checkBV(st_Self *self);
 
-static void _checkManagement(const ElectricLocomotive *loco, ElectricEngine *eng, st_Self * self);
+static void _checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng);
+static void _SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState );
 
-static void _debugStep(const ElectricLocomotive *loco, ElectricEngine *eng, st_Self *self);
+static void _displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
+static void _debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
+
 /************************/
 
 //static SAUT saut;
+
+static Brake_395 kran395;
 static EPK epk;
 
 int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
@@ -63,13 +52,14 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     eng->ALSNOn=0;
 
     eng->EPTvalue = 0.0;
-    SELF->Reverse = eng->Reverse = REVERSE_NEUTRAL;
+    eng->Reverse = 0;
+    SELF->Reverse  = REVERSE_NEUTRAL;
     eng->ThrottlePosition = 0;
 
     SELF->pneumo.Arm_395 = _checkSwitchWithSound(loco, Arms::Arm_395, -1, 1, 0 ) + 1;
     SELF->elecrto.PantoRaised = 0;
 
-    eng->var[3]=GetTickCount();
+    eng->var[3]= (float)GetTickCount();
 
     ftime(&SELF->debugTime.prevTime);
     SELF->debugTime.currTime = SELF->debugTime.prevTime;
@@ -78,20 +68,15 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     SELF->Reverse = REVERSE_NEUTRAL;
 
     /* Тест тормозов */
-    loco->MainResPressure=8.0;
-    loco->TrainPipePressure=5.0;
-    loco->AuxiliaryPressure=5.2;
+    loco->MainResPressure = 8.0;
+    loco->TrainPipePressure = 5.0;
+    loco->AuxiliaryPressure = 5.2;
     //saut.init();
-
+    kran395.init();
     KLUB_init(&SELF->KLUB);
-
     Radiostation_Init(&SELF->radio);
-    Radiostation_setEnabled(&SELF->radio, 1);
-
-    SELF->alsn.SpeedLimit.Limit = 0.0;
-    SELF->alsn.SpeedLimit.Distance = 111.0;
-
-    return 1;
+    eng->var[3] = GetTickCount();
+    return 0;
 }
 
 void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
@@ -136,18 +121,20 @@ void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
 
 }
 
-int ED4M_Step(st_Self *SELF, const ElectricLocomotive *loco, ElectricEngine *eng, float gameTime )
+int ED4M_Step(st_Self *SELF )
 {
-    Cabin *cab = loco->cab;
-    SELF->service.gameTime = gameTime;
-
     int isMainSect = 0;
+    ElectricEngine *eng = SELF->game.engPtr;
+    const ElectricLocomotive *loco = SELF->game.locoPtr;
 
-    _checkBrake(loco, eng, SELF);
+    kran395.step(SELF->pneumo.Arm_395, loco, eng, SELF->game.time);
 
     if(loco->NumSlaves&&(loco->LocoFlags&1))
     {
         isMainSect = 1;
+        wchar_t parameter[32];
+        swprintf_s(parameter, sizeof (parameter), L"%s", "cabNum");
+        SELF->service.cabNum =  loco->GetParameter(parameter, 44);
     }
 
     if (!isMainSect)
@@ -157,19 +144,11 @@ int ED4M_Step(st_Self *SELF, const ElectricLocomotive *loco, ElectricEngine *eng
         return 1;
     }
 
-    //if(!loco->Velocity)
-    //    RTSSetIntegerG(loco,RTS_TRAINDIR,loco->LibParam==1?-1:1);
+    _checkBV(SELF);
+    SELF->radio.isActive = SELF->tumblersArray[Tumblers::Switch_Radio];
 
     /*Грузим данные из движка себе в МОЗГИ*/
     SELF->elecrto.LineVoltage =  loco->LineVoltage;
-
-    cab->SetDisplayValue(Sensors::Sns_Voltage, loco->LineVoltage );
-
-    cab->SetDisplayValue(Sensors::Sns_BrakeCil, loco->BrakeCylinderPressure );
-    cab->SetDisplayValue(Sensors::Sns_SurgeTank, eng->UR);
-    cab->SetDisplayValue(Sensors::Sns_BrakeLine, loco->TrainPipePressure);
-    cab->SetDisplayValue(Sensors::Sns_PressureLine, loco->ChargingPipePressure);
-
 
     if (SELF->tumblersArray[Tumblers::Switch_Panto] && SELF->tumblersArray[Tumblers::Tmb_PantoUP] )
     {
@@ -189,15 +168,15 @@ int ED4M_Step(st_Self *SELF, const ElectricLocomotive *loco, ElectricEngine *eng
     }
 
     /*Работаем в своём соку*/
-    _checkManagement(loco, eng, SELF);
+    _checkManagement(SELF, loco, eng);
+    _displayPult(SELF, loco, eng);
 
-    _osveshenie(loco, SELF);
+    _osveshenie(SELF, loco);
     Radiostation_Step(loco, eng, &SELF->radio);
-    HodovayaSound(loco, eng, SELF);
+    HodovayaSound(SELF);
 
     /*А тепер пихаем из наших МОЗГОВ данные в движок*/
-    eng->Reverse = SELF->Reverse;
-    eng->IndependentBrakeValue= ( SELF->pneumo.Arm_254 - 1) * 1.0;
+    eng->Reverse = SELF->Reverse - REVERSE_NEUTRAL;
     SELF->prevVelocity = SELF->alsn.CurrSpeed;
     float SetForce = m_tractionForce (SELF);
 
@@ -209,20 +188,21 @@ int ED4M_Step(st_Self *SELF, const ElectricLocomotive *loco, ElectricEngine *eng
     for (UINT i =0; i < loco->NumSlaves-1; i++)
     {
         //if ( i<=3)
-            loco->Slaves[i]->Eng()->Force = -SetForce;
+            loco->Slaves[i]->Eng()->Force = (-SetForce) * (eng->Reverse);
         //else
         //    loco->Slaves[i]->Eng()->Force = -SetForce;
     }
-   // _debugStep(loco, eng, SELF);
+    _debugStep(SELF, loco, eng);
     return 1;
 }
 
-void ED4M_SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState, const ElectricLocomotive *loco )
+static void _SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState)
 {
     int dorrsArrayPos = Tumblers::Tmb_leftDoors;
 
     /* инвертируем двери */
-    if( RTSSetIntegerG(loco,RTS_TRAINDIR,loco->LibParam == 0))
+    const ElectricLocomotive *loco = SELF->game.locoPtr;
+    if( RTSGetInteger(loco ,RTS_TRAINDIR, 0) == 0)
     {
         if (WhatDoors == DOORS_RIGHT)
             WhatDoors = DOORS_LEFT;
@@ -257,7 +237,7 @@ void ED4M_SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState, const
  * @param eng
  * @param self
  */
-static void HodovayaSound(const ElectricLocomotive *loco, ElectricEngine *eng, st_Self *self)
+static void HodovayaSound(st_Self *self)
 {
     static int isFinalStop = 0;
     float currSpeed = fabs(self->alsn.CurrSpeed);
@@ -279,140 +259,40 @@ static void HodovayaSound(const ElectricLocomotive *loco, ElectricEngine *eng, s
     }
 }
 
-static int m_getDest( st_Self *self)
-{
-    if (self->Reverse > REVERSE_NEUTRAL)
-        self->destination = SECTION_DEST_FORWARD;
-    else if (self->Reverse < REVERSE_NEUTRAL )
-        self->destination = SECTION_DEST_FORWARD;
-    else
-         self->destination = 0;
-    return self->destination;
-}
-
 static float m_tractionForce ( st_Self *self)
 {
     float startForce = 0.0;
 
     if (self->elecrto.PantoRaised == 0)
         return 0.0;
-    startForce = (float) (( self->Reverse - REVERSE_NEUTRAL) * self->TyagaPosition )  ;
-    startForce *= float(m_getDest(self));
+
+    if (self->game.engPtr->MainSwitch == 0)
+        return 0.0;
+
+    self->game.engPtr->Reverse = self->Reverse - REVERSE_NEUTRAL;
+    /*if (self->game.engPtr->Reverse > 0)
+        self->destination = SECTION_DEST_FORWARD;
+    else if (self->Reverse < REVERSE_NEUTRAL)
+        self->destination = SECTION_DEST_BACKWARD;
+    else
+        self->destination = 0;*/
+
+    startForce = (float) (( self->game.engPtr->Reverse) * self->TyagaPosition )  ;
     return startForce;
 }
 
-static void _checkBrake(const ElectricLocomotive * loco, ElectricEngine *eng, st_Self *self)
+static void _checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng)
 {
-    eng->MainResRate=0.04*(11.0-loco->MainResPressure);
+   // Cabin *cab = loco->cab;
 
-    //Train brake
-    eng->TrainPipeRate=0.0;
-    if( !(loco->LocoFlags&1))
-        return;
-
-    //Printer_print(eng, GMM_POST, L"Braking: %d\n GameTime %f", self->pneumo.Arm_395, self->service.gameTime);
-
-    switch(self->pneumo.Arm_395){
-    case 0:
-        if(eng->var[5]<45.0)
-        {
-            //if(!cab->Switches[3].SetState)
-            eng->UR += BRAKE_UR_RATE_CHARGE * self->service.gameTime;
-            if(eng->UR>loco->MainResPressure)
-                eng->UR=loco->MainResPressure;
-            if(loco->TrainPipePressure < eng->UR)
-                eng->TrainPipeRate=(eng->UR-loco->TrainPipePressure)*1.5;
-
-        }
-        break;
-    case 1:
-        if(eng->var[5]<45.0)
-        {
-            if(eng->UR<5.0)
-            {
-                float rate=(loco->MainResPressure-eng->UR)*2.0;
-                if(rate<0.0)rate=0.0;
-                if(rate>BRAKE_UR_RATE_CHARGE)rate=BRAKE_UR_RATE_CHARGE;
-                eng->UR+=rate * self->service.gameTime;
-            }
-            else
-                if(loco->BrakeCylinderPressure>0.0&&(eng->UR-loco->TrainPipePressure)<0.1)
-                    eng->UR+=0.15 * self->service.gameTime;
-            if(eng->UR>loco->MainResPressure)
-                eng->UR=loco->MainResPressure;
-            if(eng->UR>loco->TrainPipePressure)
-                eng->UR-=0.003 * self->service.gameTime;
-            if(loco->TrainPipePressure<eng->UR-0.01)
-                eng->TrainPipeRate=(eng->UR-loco->TrainPipePressure)/BRAKE_PIPE_RATE_CHARGE;
-            else if(loco->TrainPipePressure>eng->UR)
-            {
-                eng->TrainPipeRate=(eng->UR-loco->TrainPipePressure)/BRAKE_PIPE_RATE_CHARGE;
-                if(eng->TrainPipeRate<-BRAKE_PIPE_RATE)
-                    eng->TrainPipeRate=-BRAKE_PIPE_RATE;
-            }
-        }
-        break;
-    case 2:
-        if(eng->UR>loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(loco->TrainPipePressure>eng->UR)
-            eng->TrainPipeRate=eng->UR-loco->TrainPipePressure;
-        if(eng->TrainPipeRate<-BRAKE_PIPE_RATE)
-            eng->TrainPipeRate=-BRAKE_PIPE_RATE;
-        if(eng->TrainPipeRate>PIPE_DISCHARGE_SLOW)
-            eng->TrainPipeRate=PIPE_DISCHARGE_SLOW;
-
-        break;
-    case 3:
-        if(eng->UR>loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(loco->TrainPipePressure>eng->UR)
-            eng->TrainPipeRate=eng->UR-loco->TrainPipePressure;
-        else if(eng->UR-loco->TrainPipePressure>0.1)
-            eng->TrainPipeRate=0.05;
-        if(eng->TrainPipeRate<-BRAKE_PIPE_RATE)
-            eng->TrainPipeRate=-BRAKE_PIPE_RATE;
-
-        break;
-    case 4:
-        //if(cab->Switches[3].SetState!=4)
-        // break;
-        eng->UR-=0.3  * self->service.gameTime;
-        if(eng->UR>loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(eng->UR<0)
-            eng->UR=0;
-        eng->TrainPipeRate=-0.25;
-
-
-        break;
-    case 5:
-        eng->UR+=BRAKE_PIPE_EMERGENCY  *1.2 * self->service.gameTime;
-        if(eng->UR > loco->MainResPressure)
-            eng->UR=loco->MainResPressure;
-        if(eng->UR<0)
-            eng->UR=0;
-        eng->TrainPipeRate = BRAKE_PIPE_EMERGENCY;
-        break;
-    default:
-        break;
+    if ( self->tempFlags[Tumblers::Tmb_leftDoors] != FLAG_DISABLED )
+    {
+        _SetDoorsState(self, DOORS_LEFT, self->tempFlags[Tumblers::Tmb_leftDoors]);
+        self->tempFlags[Tumblers::Tmb_leftDoors] = FLAG_DISABLED;
     }
 }
 
-static void _checkManagement(const ElectricLocomotive *loco, ElectricEngine *eng, st_Self * self)
-{
-    Cabin *cab = loco->cab;
-    int isVU =  self->tumblersArray[Tumblers::Tmb_VU];
-    cab->SetDisplayState(Lamps::Lmp_SOT, isVU );
-    cab->SetDisplayState(Lamps::Lmp_SOT_X, isVU );
-    cab->SetDisplayState(Lamps::Lmp_RN, isVU );
-    cab->SetDisplayState(Lamps::Lmp_VspomCepi, isVU );
-    cab->SetDisplayState(Lamps::Lmp_RNDK, isVU );
-    cab->SetDisplayState(Lamps::Lmp_Preobr, isVU );
-    cab->SetDisplayState(Lamps::Lmp_BV, isVU );
-}
-
-static void _osveshenie(const ElectricLocomotive * loco, st_Self *self)
+static void _osveshenie( st_Self *self, const ElectricLocomotive * loco)
 {
     /*loco->SwitchLight(en_Lights::Light_Proj_Half1, self->tumblers.projHalf, 0.0, 0);
     loco->SwitchLight(en_Lights::Light_Proj_Half2, self->tumblers.projHalf, 0.0, 0);
@@ -437,20 +317,77 @@ static void _osveshenie(const ElectricLocomotive * loco, st_Self *self)
 
 }
 
+static void _checkBV(st_Self *self)
+{
+    if (_haveElectroEmergency(self) )
+    {
+        if (self->game.engPtr->MainSwitch)
+        {
+            self->game.engPtr->MainSwitch = 0;
+            self->BV_STATE = 0;
+        }
+    }
+
+    if (self->tumblersArray[Tumblers::Tmb_vozvrZash])
+    {
+        if (self->BV_STATE < 1)
+            self->BV_STATE = 1;
+    }
+    else
+    {
+        if (!self->tumblersArray[Tumblers::Tmb_vozvrZash])
+            if ( self->BV_STATE == 1 )
+                self->game.engPtr->MainSwitch = 1;
+    }
+}
+
+static int _haveElectroEmergency(st_Self *self)
+{
+    return 0;
+}
+
 /**
  * @brief _debugPrint
  * @param loco
  * @param eng
  * @param self
  */
-static void _debugStep(const ElectricLocomotive *loco, ElectricEngine *eng, st_Self *self)
+static void _debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
 {
     ftime(&self->debugTime.currTime);
     if ((self->debugTime.prevTime.time + 1) > self->debugTime.currTime.time)
         return;
 
-    Printer_print(eng, GMM_POST, L"BrakeForce: %f Tyaga: %f 395 pos: %d Dist: %d Volt %f \n",
-                eng->BrakeForce, eng->Force,
-                self->pneumo.Arm_395, self->alsn.SpeedLimit.Distance, loco->LineVoltage );
+    Printer_print(eng, GMM_POST, L"Time1 %f,  Time2 %f, Time3 %f, Time4 %f \n",
+                  eng->var[3], eng->var[4], eng->var[5], eng->var[13]);
     self->debugTime.prevTime = self->debugTime.currTime;
+}
+
+/**
+ * @brief _displayPult Показывает манометры и лампы на пульте
+ * @param self
+ * @param loco
+ * @param eng
+ */
+static void _displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
+{
+    Cabin *cab = loco->cab;
+
+    cab->SetDisplayValue(Sensors::Sns_Voltage, loco->LineVoltage );
+    cab->SetDisplayValue(Sensors::Sns_BrakeCil, loco->BrakeCylinderPressure );
+    cab->SetDisplayValue(Sensors::Sns_SurgeTank, eng->UR);
+    cab->SetDisplayValue(Sensors::Sns_BrakeLine, loco->TrainPipePressure);
+    cab->SetDisplayValue(Sensors::Sns_PressureLine, loco->ChargingPipePressure);
+
+    int canLight = self->tumblersArray[Tumblers::Switch_VU] && self->tumblersArray[Tumblers::Switch_AutomatUpr];
+    cab->SetDisplayState(Lamps::Lmp_SOT, canLight );
+    cab->SetDisplayState(Lamps::Lmp_SOT_X, canLight );
+    cab->SetDisplayState(Lamps::Lmp_RN, canLight );
+    cab->SetDisplayState(Lamps::Lmp_VspomCepi, canLight );
+    cab->SetDisplayState(Lamps::Lmp_RNDK, canLight );
+    cab->SetDisplayState(Lamps::Lmp_Preobr, canLight );
+    cab->SetDisplayState(Lamps::Lmp_BV, ( canLight && !eng->MainSwitch) );
+
+    int doorsIsClosed = 1;
+    cab->SetDisplayState(Lamps::Lmp_Doors, ( canLight && doorsIsClosed) );
 }

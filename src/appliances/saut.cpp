@@ -1,9 +1,8 @@
 #include <cmath>
 #include <stdio.h>
 
-#include "utils/utils.h"
-
-#include "src/ED4M_datatypes/cab/section1/elements.h"
+#include "src/utils/utils.h"
+#include "src/elements.h"
 #include "saut.h"
 
 constexpr int TIME_FOR_DISABLE_TYAGA = 20;
@@ -55,12 +54,12 @@ int SAUT::step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcep
         return SAUT_DISABLED;
 
     m_SELF.Speed = alsn->CurrSpeed;
-    m_SELF.SpeedLimit = alsn->SpeedLimit.Limit;
+    //m_SELF.SpeedLimit = alsn->SpeedLimit.Limit;
 
-    if (m_SELF.m_siglNext == en_SignColors::COLOR_WHITE)
+    if (m_SELF.m_siglNext == SignColors::COLOR_WHITE)
         m_SELF.SpeedLimit = WHITE_LIMIT;
 
-    if (m_SELF.m_siglNext == en_SignColors::COLOR_RED)
+    if (m_SELF.m_siglNext == SignColors::COLOR_RED)
         m_SELF.SpeedLimit = RED_LIMIT;
 
     m_makeDisplay(loco);
@@ -94,7 +93,7 @@ int SAUT::step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcep
     {
         m_SELF.m_siglPrev = m_SELF.m_siglNext;
         m_playColor(loco, m_SELF.m_siglNext);
-        if (m_SELF.m_siglNext != en_SignColors::COLOR_GREEN)
+        if (m_SELF.m_siglNext != SignColors::COLOR_GREEN)
             sautState = EPK_ALARM_FOR_EPK;
     }
 
@@ -132,34 +131,34 @@ int SAUT::m_getSignCode(const st_ALSN *alsn) noexcept
  * @param eng
  * @return
  */
-en_SignColors SAUT::m_getSignColor(int sig) noexcept
+SignColors SAUT::m_getSignColor(int sig) noexcept
 {
     if ( (sig == SIGASP_CLEAR_1 ) || (sig == SIGASP_CLEAR_2) )
-        return en_SignColors::COLOR_GREEN;
+        return SignColors::COLOR_GREEN;
     else if ( (sig == SIGASP_APPROACH_1) || (sig == SIGASP_APPROACH_2) || (sig == SIGASP_APPROACH_3) )
-        return en_SignColors::COLOR_YELLOW;
+        return SignColors::COLOR_YELLOW;
     else if (sig == SIGASP_STOP_AND_PROCEED)
-        return en_SignColors::COLOR_RD_YEL;
+        return SignColors::COLOR_RD_YEL;
     else if (sig == SIGASP_RESTRICTING)
-        return en_SignColors::COLOR_WHITE;
+        return SignColors::COLOR_WHITE;
     else if ((sig == SIGASP_STOP) ||  (SIGASP_BLOCK_OBSTRUCTED))
-        return en_SignColors::COLOR_RED;
+        return SignColors::COLOR_RED;
     else
-        return en_SignColors::COLOR_WHITE;
+        return SignColors::COLOR_WHITE;
         //return en_SignColors::UNSET;
 }
 
-void SAUT::m_playColor(const Locomotive *loco, en_SignColors colour) noexcept
+void SAUT::m_playColor(const Locomotive *loco, SignColors colour) noexcept
 {
-    if (colour== en_SignColors::COLOR_GREEN)
+    if (colour== SignColors::COLOR_GREEN)
         loco->PostTriggerCab(SAUT_sounds::GREEN);
-    else if (colour == en_SignColors::COLOR_YELLOW)
+    else if (colour == SignColors::COLOR_YELLOW)
         loco->PostTriggerCab(SAUT_sounds::YELLOW);
-    else if (colour == en_SignColors::COLOR_RD_YEL)
+    else if (colour == SignColors::COLOR_RD_YEL)
         loco->PostTriggerCab(SAUT_sounds::KG);
-    else if (colour == en_SignColors::COLOR_RED)
+    else if (colour == SignColors::COLOR_RED)
         loco->PostTriggerCab(SAUT_sounds::RED);
-    else if (colour == en_SignColors::COLOR_WHITE)
+    else if (colour == SignColors::COLOR_WHITE)
         loco->PostTriggerCab(SAUT_sounds::WHITE);
     else
     {
@@ -219,13 +218,13 @@ void SAUT::m_Sound_ResetTime() noexcept
 void SAUT::m_makeDisplay(const Locomotive *loco) noexcept
 {
     wchar_t  sCH[100];
-    if (m_SELF.m_siglNext == en_SignColors::COLOR_GREEN)
+    if (m_SELF.m_siglNext == SignColors::COLOR_GREEN)
         swprintf( sCH, sizeof (sCH), L"Зелён");
-    else if (m_SELF.m_siglNext == en_SignColors::COLOR_YELLOW)
+    else if (m_SELF.m_siglNext == SignColors::COLOR_YELLOW)
         swprintf( sCH, sizeof (sCH), L"Желт");
-    else if (m_SELF.m_siglNext == en_SignColors::COLOR_RD_YEL)
+    else if (m_SELF.m_siglNext == SignColors::COLOR_RD_YEL)
         swprintf( sCH, sizeof (sCH), L"КЖ");
-    else if (m_SELF.m_siglNext == en_SignColors::COLOR_RED)
+    else if (m_SELF.m_siglNext == SignColors::COLOR_RED)
         swprintf( sCH, sizeof (sCH), L"Красн");
     else
         swprintf( sCH, sizeof (sCH), L"Белый");

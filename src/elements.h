@@ -72,7 +72,6 @@ typedef enum en_Tumblers
 {
     Tmb_AvarEPT = 4,
     Tmb_vozvrZash = 5,
-    Tmb_otpusk = 6,
     Tmb_manage_leftDoors_TCH_M = 7,
     Tmb_manage_RightDoors_TCH_M = 8,
     Tmb_manage_leftDoors_TCH_MP = 9,
@@ -81,8 +80,8 @@ typedef enum en_Tumblers
     Tmb_PantoDown = 12,
     Tmb_vspomKompr = 13,
     Tmb_lightCab_Dimly = 18,
-    Tmb_VU = 19,
-    Tmb_AutomatUpr = 20,
+    Switch_VU = 19,
+    Switch_AutomatUpr = 20,
 
     Tmb_leftDoors = 24,
     Tmb_rightDoors = 25,
@@ -145,7 +144,6 @@ typedef enum en_Tumblers
     KLUB_CMD_L = 93,
     KLUB_CMD_I = 94,
     KLUB_CMD_K = 95,
-    //KLUB_disable_input = 106,
 
 }Tumblers;
 
@@ -167,6 +165,7 @@ typedef enum en_Sensors
     Sns_KLUB_RassDoCeli = 31,
 
     /*КЛУБ лампы*/
+
     Sns_KLUB_Poezdn = 33,
     Sns_KLUB_Manevr = 34,
 
@@ -178,9 +177,31 @@ typedef enum en_Sensors
     Sns_KLUB_RedYellow = 45,
     Sns_KLUB_Red = 46,
     Sns_KLUB_White = 47,
+    Sns_KLUB_SpeedGreenCircle  = 29,
+    Sns_KLUB_Kasseta = 32,
+    Sns_KLUB_TM  = 27,
+    Sns_KLUB_UR  = 28,
 
 
+    /*КЛУБ непотянтое*/
+    TEST_KLUB_BIL1_LAMP  = 0,
+    TEST_KLUB_BIL2_LAMP  = 19,
 
+
+    TEST_KLUB_BILL_64_LAMP = 40,
+    TEST_KLUB_BILL_64_LAMP_41 = 41,
+    TEST_KLUB_BILL_64_LAMP_42 = 42,
+    TEST_KLUB_BILL_64_LAMP_43 = 43,
+    TEST_KLUB_BILL_64_LAMP_44 = 44,
+    TEST_KLUB_BILL_64_LAMP_45 = 45,
+    TEST_KLUB_BILL_64_LAMP_46 = 46,
+    TEST_KLUB_BILL_64_LAMP_47 = 47,
+    TEST_KLUB_BILL_64_LAMP_48 = 48,
+    TEST_KLUB_BILL_64_LAMP_49 = 49,
+    TEST_KLUB_BILL_64_LAMP_51 = 50,
+    TEST_KLUB_BILL_64_LAMP_50 = 51,
+    TEST_KLUB_BILL_SOME_LAMP_52 = 52,
+    TEST_KLUB_BILL_SOME_LAMP_55 = 55
 }Sensors;
 
 

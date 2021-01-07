@@ -47,8 +47,8 @@ typedef struct st_intermnalSAUT
     float Speed;
     float SpeedLimit;
     int Distance;
-    en_SignColors m_siglNext =  en_SignColors::COLOR_WHITE;
-    en_SignColors m_siglPrev =  en_SignColors::COLOR_WHITE;
+    SignColors m_siglNext =  SignColors::COLOR_WHITE;
+    SignColors m_siglPrev =  SignColors::COLOR_WHITE;
 
 }st_intermnalSAUT;
 
@@ -70,8 +70,8 @@ private:
      * @return  код сигнала в формате RTS или -1 , если не удалось распознать сигнал
      */
     int m_getSignCode(const st_ALSN *alsn) noexcept;
-    en_SignColors m_getSignColor(int sig) noexcept;
-    void m_playColor(const Locomotive *loco, en_SignColors colour) noexcept;
+    SignColors m_getSignColor(int sig) noexcept;
+    void m_playColor(const Locomotive *loco, SignColors colour) noexcept;
     void m_updateSoundsTime() noexcept;
     void m_SoundPip(const Locomotive *loco) noexcept ;
     void m_Sound_DisableTyaga(const Locomotive *loco) noexcept;

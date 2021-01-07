@@ -3,17 +3,11 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <cmath>
-
 /*#define RTS_NODIRECTOBJLINKS*/
 #include "src/utils/utils.h"
 #include "src/private_ED4M.h"
-#include "src/ED4M_datatypes/cab/section1/elements.h"
-#include "../ED4M.h"
-
+#include "src/elements.h"
 #include "ED4M.h"
-
-#define MAX_LOCOS 12 // макс. кол-во локов - с учётом перспективы на МВПС
 
 #pragma hdrstop
 #pragma argsused
@@ -45,9 +39,11 @@ extern "C" bool Q_DECL_EXPORT Init
  (ElectricEngine *eng,ElectricLocomotive *loco,unsigned long State,
         float time,float AirTemperature)
 {
-    if ( ED4M_init(&SELF, loco, eng ) == 0)
+    SELF.game.time = time;
+    SELF.game.time = AirTemperature;
+    SELF.game.time = State;
+    if ( ED4M_init(&SELF, loco, eng ) == -1)
         return 0;
-
 
 /*
  eng->var[0]=0;
@@ -68,9 +64,8 @@ extern "C" bool Q_DECL_EXPORT Init
  eng->var[16]=0.0;
  eng->var[17]=0.0;*/
 
- SELF.service.LocoState = 0;
- Cabin *cab=eng->cab;
- UINT *Flags=(UINT *)&eng->var[0];
+ //Cabin *cab=eng->cab;
+ //UINT *Flags=(UINT *)&eng->var[0];
 
  /*
  switch(State&0xFF)
@@ -110,7 +105,6 @@ extern "C" bool Q_DECL_EXPORT Init
      break;
  }*/
 
-// SELF.dest = -1;
  return 1;
 }
 
@@ -121,15 +115,15 @@ extern "C" void Q_DECL_EXPORT ALSN ( Locomotive *loco, SignalsInfo *sigAhead, UI
         float DistanceToNextLimit, bool Backwards )
 {
 
+    //Printer_print(loco->Eng(), GMM_POST, L"next lim: %f \n", DistanceToNextLimit);
     if( (loco->NumSlaves < 1) ) // это не голова! // || (loco->LocoFlags&1) )
         return;
 
+    SELF.alsn.isBackward = Backwards;
     SELF.alsn.SpeedLimit.Distance = DistanceToNextLimit;
     SELF.alsn.SpeedLimit.Limit = (float)(SpeedLimit * TO_KM_PH);
     SELF.alsn.SpeedLimit.NextLimit = (float)(NextLimit * TO_KM_PH);
     SELF.alsn.CurrSpeed = (float)( fabs(double(loco->Velocity)) * TO_KM_PH);
-
-   // SELF.isBackward = (int)Backwards;
 
     /*загружаем информацию по сигналам */
     SELF.alsn.NumSigForw = NumSigAhead;
@@ -150,18 +144,21 @@ extern "C" void Q_DECL_EXPORT ALSN ( Locomotive *loco, SignalsInfo *sigAhead, UI
     if (sigBack)
         SELF.alsn.signListBack =  *sigBack;
 
-    //Printer_print(loco->Eng(), GMM_POST, L"Distance: %f\n", DistanceToNextLimit );
     ED4M_ALSN(&SELF, loco );
 }
 
 
 extern "C" void Q_DECL_EXPORT Run
  (ElectricEngine *eng,const ElectricLocomotive *loco, unsigned long State,
-        float time,float AirTemperature)
+        float time, float AirTemperature)
 {
      SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitchWithSound(loco, Tumblers::Switch_Panto, -1, 1, 0);
-
-     ED4M_Step(&SELF, loco, eng, time);
+     SELF.game.AirTemperature = AirTemperature;
+     SELF.game.time = time;
+     SELF.game.locoPtr = loco;
+     SELF.game.engPtr = eng;
+     SELF.game.State = State;
+     ED4M_Step(&SELF);
 }
 
 
@@ -257,23 +254,13 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco, ElectricE
     else if ( SwitchID == Tumblers::Key_EPK )
         SELF.tumblersArray[Tumblers::Key_EPK] = _checkSwitchWithSound(loco, Tumblers::Key_EPK, SoundsID::EPK_INIT, 1, 0);
 
-    else if ( SwitchID == Tumblers::Tmb_AutomatUpr )
-        SELF.tumblersArray[Tumblers::Tmb_AutomatUpr] = _checkSwitchWithSound(loco, Tumblers::Tmb_AutomatUpr, SoundsID::Avtomat, 1, 0);
-    else if ( SwitchID == Tumblers::Tmb_VU )
-        SELF.tumblersArray[Tumblers::Tmb_VU] = _checkSwitchWithSound(loco, Tumblers::Tmb_VU, SoundsID::VU, 1, 0);
+    else if ( SwitchID == Tumblers::Switch_AutomatUpr )
+        SELF.tumblersArray[Tumblers::Switch_AutomatUpr] = _checkSwitchWithSound(loco, Tumblers::Switch_AutomatUpr, SoundsID::Avtomat, 1, 0);
+    else if ( SwitchID == Tumblers::Switch_VU )
+        SELF.tumblersArray[Tumblers::Switch_VU] = _checkSwitchWithSound(loco, Tumblers::Switch_VU, SoundsID::VU, 1, 0);
 
     else if ( ( SwitchID == Tumblers::Tmb_leftDoors ) || ( SwitchID == Tumblers::Tmb_rightDoors ))
-    {
-        int newDoorsState = 1;
-        if (_checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0))
-            newDoorsState = 0;
-
-       int doorsDest = DOORS_LEFT;
-       if (SwitchID == Tumblers::Tmb_rightDoors)
-            doorsDest = DOORS_RIGHT;
-
-       ED4M_SetDoorsState(&SELF, doorsDest, newDoorsState, loco);
-    }
+       SELF.tempFlags[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
 
     else if ( SwitchID == Tumblers::Switch_PitALSN_1 )
         SELF.tumblersArray[Tumblers::Switch_PitALSN_1] = _checkSwitchWithSound(loco, Tumblers::Switch_PitALSN_1, SoundsID::Switch, 1, 0);

@@ -9,40 +9,44 @@ DEFINES += ED4M_LIBRARY
 
 CONFIG += c++11
 
+INCLUDEPATH += src/RTS/
+
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    src/epk.cpp \
-    src/klub.cpp \
-    src/private_ED4M.cpp \
-    src/radiostation.cpp \
-    src/saut.cpp \
-    src/ts.cpp \
-    src/utils/for_rts.cpp \
-    src/utils/utils.cpp \
     src/ED4M.cpp \
-    src/ED4M_main.cpp
+    src/dll_main.cpp \
+    src/equipment/brake_395.cpp \
+    src/private_ED4M.cpp \
+    src/equipment/epk.cpp \
+    src/appliances/klub.cpp \
+    src/appliances/radiostation.cpp \
+    src/appliances/saut.cpp \
+    src/RTS/ts.cpp \
+    src/utils/utils.cpp
+
 
 HEADERS += \
+    src/ED4M_data.h \
     src/ED4M_global.h \
-    ED4M.h \
-    src/epk.h \
-    src/klub.h \
+    src/ED4M.h \
+    src/RTS/rts_data.h \
+    src/dll_main.h \
+    src/equipment/brake_395.h \
+    src/equipment/brake_data.h \
     src/private_ED4M.h \
-    src/radiostation.h \
-    src/saut.h \
-    src/saut_datatype.h \
+    src/equipment/epk.h \
+    src/appliances/klub.h \
+    src/appliances/radiostation.h \
+    src/appliances/saut.h \
+    src/appliances/saut_datatype.h \
     src/shared_code.h \
     src/shared_structs.h \
-    src/ts.h \
-    src/utils/for_rts.h \
+    src/RTS/ts.h \
     src/utils/utils.h \
-    src/ED4M_datatypes/cab/section1/elements.h \
-    src/ED4M.h
-
-
+    src/elements.h
 
 win32-msvc*
 {

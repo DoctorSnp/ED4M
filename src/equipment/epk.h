@@ -3,7 +3,6 @@
 
 #include "ts.h"
 #include "sys/timeb.h"
-#include "saut_datatype.h"
 
 typedef enum en_EPKState
 {
