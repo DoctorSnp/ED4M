@@ -13,9 +13,7 @@
 #define UR_DISCHARGE2     0.003
 
 Brake_395::Brake_395()
-{
-
-}
+{}
 
 int Brake_395::init()
 {
@@ -140,8 +138,7 @@ void Brake_395::m_soundBrake(int pos, const Locomotive *loco)
     {
         if (m_prevPos == 0)
             loco->PostTriggerCab(SoundsID::Kran395_Otpusk + 1);
-        else if (m_prevPos == 1)
-            loco->PostTriggerCab(SoundsID::Kran395_Poezdnoe + 1);
+
         else if ( (m_prevPos == 4) || (m_prevPos == 5) )
            loco->PostTriggerCab(SoundsID::Kran395_Slugebnoe + 1);
         else if  (m_prevPos == 6)
@@ -150,7 +147,10 @@ void Brake_395::m_soundBrake(int pos, const Locomotive *loco)
         if (pos == 0)
             loco->PostTriggerCab(SoundsID::Kran395_Otpusk);
         else if (pos == 1)
-            loco->PostTriggerCab(SoundsID::Kran395_Poezdnoe);
+        {
+            if (m_prevPos == 0)
+                loco->PostTriggerCab(SoundsID::Kran395_Poezdnoe);
+        }
         else if ( (pos == 4) || (pos == 5) )
             loco->PostTriggerCab(SoundsID::Kran395_Slugebnoe);
         else if  (pos == 6)

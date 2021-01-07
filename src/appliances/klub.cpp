@@ -257,13 +257,13 @@ static void _displayTime(st_KLUB* _KLUB, int isDisplay)
     if (_KLUB->cabPtr->ScreenState(Sensors::Sns_KLUB_Time, 0) < 1)
         _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Time, 0, 1);
 
-    int curr_time = _KLUB->enginePtr->var[3] + RTSGetInteger(_KLUB->locoPtr, RTS_VAR_TIME , 1);
-    int sec = curr_time % 60;
-    int min = (curr_time / 60) % 60;
-    int hour = (curr_time / 360) % 60 ;
+    int curr_time = RTSGetInteger(_KLUB->locoPtr, RTS_VAR_TIME , 1);
+    int sec  = curr_time % 60;
+    int min  = (curr_time / 60) % 60;
+    int hour = (curr_time / 3600) % 24;
 
-    wchar_t tempText[11];
-    swprintf(tempText ,L"%02d.%02d%.02d", hour, min, sec);
+    wchar_t tempText[12];
+    swprintf(tempText ,L"%02d.%02d.%02d", hour, min, sec);
     _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Time, 0, tempText);
 }
 
@@ -283,11 +283,11 @@ static void  _displayPressure(st_KLUB* _KLUB, int isDisplay)
 
     wchar_t davlTM [32];
     wchar_t davlUR [32];
-    swprintf(davlTM, L"%%2.1f", _KLUB->locoPtr->TrainPipePressure);
+    swprintf(davlTM, L"%2.1f", _KLUB->locoPtr->TrainPipePressure);
     swprintf(davlUR, L"%2.1f", _KLUB->enginePtr->UR);
 
   _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_TM, 0, davlTM);
-  _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_TM, 0, davlUR);
+  _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_UR, 0, davlUR);
 
 }
 

@@ -14,12 +14,8 @@ void _playSound(const Locomotive *loco, int soundId, int where )
         loco->PostTriggerCab((unsigned short)soundId);
 }
 
-int _checkSwitch(const Locomotive *loco, unsigned int switchElem)
-{
-    return loco->Cab()->Switch(switchElem);
-}
 
-int _checkSwitchWithSound(const Locomotive *loco, unsigned int switchElem, int soundId, int singleSound, int where)
+int _checkSwitch(const Locomotive *loco, unsigned int switchElem, int soundId, int singleSound, int where)
 {
     int elemState = loco->Cab()->Switch(switchElem);
     if (soundId >= 0)

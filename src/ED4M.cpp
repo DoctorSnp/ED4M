@@ -1,7 +1,6 @@
-﻿//#define __STDIO_H
-#include <stdio.h>
-
+﻿#include <stdio.h>
 #include <math.h>
+
 #include "utils/utils.h"
 #include "equipment/epk.h"
 #include "appliances/saut.h"
@@ -11,22 +10,26 @@
 
 #include "ED4M.h"
 
-
-/*** Закрытые функции ***/
+/*******************************    Закрытые функции    *******************************/
 static void HodovayaSound(st_Self *self);
 
+static void m_osveshenie(st_Self *self, const ElectricLocomotive * loco);
+
+/**** Электрика ****/
 static float m_tractionForce ( st_Self *self);
-static void _osveshenie(st_Self *self, const ElectricLocomotive * loco);
-static int _haveElectroEmergency(st_Self *self);
+static int  m_haveElectroEmergency(st_Self *self);
 static void _checkBV(st_Self *self);
+/*******************/
 
-static void _checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng);
-static void _SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState );
+static void m_checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng);
+static void m_SetDoorsState(st_Self *SELF, int WhatDoors, int NewState );
 
-static void _displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
-static void _debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
+static void m_displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
 
-/************************/
+// отладочная печать раз в секунду
+static void m_debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng);
+
+/**************************************************************************************/
 
 //static SAUT saut;
 
@@ -56,10 +59,8 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     SELF->Reverse  = REVERSE_NEUTRAL;
     eng->ThrottlePosition = 0;
 
-    SELF->pneumo.Arm_395 = _checkSwitchWithSound(loco, Arms::Arm_395, -1, 1, 0 ) + 1;
+    SELF->pneumo.Arm_395 = _checkSwitch(loco, Arms::Arm_395, -1, 1, 0 ) + 1;
     SELF->elecrto.PantoRaised = 0;
-
-    eng->var[3]= (float)GetTickCount();
 
     ftime(&SELF->debugTime.prevTime);
     SELF->debugTime.currTime = SELF->debugTime.prevTime;
@@ -75,7 +76,10 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     kran395.init();
     KLUB_init(&SELF->KLUB);
     Radiostation_Init(&SELF->radio);
-    eng->var[3] = GetTickCount();
+
+    for (int i =0; i< TUMBLERS_MAX_ID; i++)
+        SELF->tumblersArray[i] = _checkSwitch(loco, i, -1, 1, 0);
+
     return 0;
 }
 
@@ -145,7 +149,6 @@ int ED4M_Step(st_Self *SELF )
     }
 
     _checkBV(SELF);
-    SELF->radio.isActive = SELF->tumblersArray[Tumblers::Switch_Radio];
 
     /*Грузим данные из движка себе в МОЗГИ*/
     SELF->elecrto.LineVoltage =  loco->LineVoltage;
@@ -168,10 +171,11 @@ int ED4M_Step(st_Self *SELF )
     }
 
     /*Работаем в своём соку*/
-    _checkManagement(SELF, loco, eng);
-    _displayPult(SELF, loco, eng);
+    m_checkManagement(SELF, loco, eng);
+    m_displayPult(SELF, loco, eng);
+    m_osveshenie(SELF, loco);
 
-    _osveshenie(SELF, loco);
+    SELF->radio.isActive = SELF->tumblersArray[Tumblers::Switch_Radio];
     Radiostation_Step(loco, eng, &SELF->radio);
     HodovayaSound(SELF);
 
@@ -186,17 +190,12 @@ int ED4M_Step(st_Self *SELF )
         SetForce *= 34000.0;
 
     for (UINT i =0; i < loco->NumSlaves-1; i++)
-    {
-        //if ( i<=3)
             loco->Slaves[i]->Eng()->Force = (-SetForce) * (eng->Reverse);
-        //else
-        //    loco->Slaves[i]->Eng()->Force = -SetForce;
-    }
-    _debugStep(SELF, loco, eng);
+    m_debugStep(SELF, loco, eng);
     return 1;
 }
 
-static void _SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState)
+static void m_SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState)
 {
     int dorrsArrayPos = Tumblers::Tmb_leftDoors;
 
@@ -216,7 +215,7 @@ static void _SetDoorsState(struct st_Self *SELF, int WhatDoors, int NewState)
     if (SELF->tumblersArray[dorrsArrayPos] != NewState)
     {
         SELF->tumblersArray[dorrsArrayPos] = NewState;
-        if (SELF->tumblersArray[dorrsArrayPos])
+        if (SELF->tumblersArray[dorrsArrayPos] == 0)
         {
             loco->PostTriggerCab(SoundsID::DoorsOpen );
             loco->Eng()->PostGlobalMessage(GM_DOOR_UNLOCK, WhatDoors);
@@ -270,29 +269,23 @@ static float m_tractionForce ( st_Self *self)
         return 0.0;
 
     self->game.engPtr->Reverse = self->Reverse - REVERSE_NEUTRAL;
-    /*if (self->game.engPtr->Reverse > 0)
-        self->destination = SECTION_DEST_FORWARD;
-    else if (self->Reverse < REVERSE_NEUTRAL)
-        self->destination = SECTION_DEST_BACKWARD;
-    else
-        self->destination = 0;*/
 
     startForce = (float) (( self->game.engPtr->Reverse) * self->TyagaPosition )  ;
     return startForce;
 }
 
-static void _checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng)
+static void m_checkManagement(st_Self * self, const ElectricLocomotive *loco, ElectricEngine *eng)
 {
    // Cabin *cab = loco->cab;
 
     if ( self->tempFlags[Tumblers::Tmb_leftDoors] != FLAG_DISABLED )
     {
-        _SetDoorsState(self, DOORS_LEFT, self->tempFlags[Tumblers::Tmb_leftDoors]);
+        m_SetDoorsState(self, DOORS_LEFT, self->tempFlags[Tumblers::Tmb_leftDoors]);
         self->tempFlags[Tumblers::Tmb_leftDoors] = FLAG_DISABLED;
     }
 }
 
-static void _osveshenie( st_Self *self, const ElectricLocomotive * loco)
+static void m_osveshenie( st_Self *self, const ElectricLocomotive * loco)
 {
     /*loco->SwitchLight(en_Lights::Light_Proj_Half1, self->tumblers.projHalf, 0.0, 0);
     loco->SwitchLight(en_Lights::Light_Proj_Half2, self->tumblers.projHalf, 0.0, 0);
@@ -319,7 +312,7 @@ static void _osveshenie( st_Self *self, const ElectricLocomotive * loco)
 
 static void _checkBV(st_Self *self)
 {
-    if (_haveElectroEmergency(self) )
+    if (m_haveElectroEmergency(self) )
     {
         if (self->game.engPtr->MainSwitch)
         {
@@ -341,7 +334,7 @@ static void _checkBV(st_Self *self)
     }
 }
 
-static int _haveElectroEmergency(st_Self *self)
+static int m_haveElectroEmergency(st_Self *self)
 {
     return 0;
 }
@@ -352,14 +345,13 @@ static int _haveElectroEmergency(st_Self *self)
  * @param eng
  * @param self
  */
-static void _debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
+static void m_debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
 {
     ftime(&self->debugTime.currTime);
     if ((self->debugTime.prevTime.time + 1) > self->debugTime.currTime.time)
         return;
 
-    Printer_print(eng, GMM_POST, L"Time1 %f,  Time2 %f, Time3 %f, Time4 %f \n",
-                  eng->var[3], eng->var[4], eng->var[5], eng->var[13]);
+    //Printer_print(eng, GMM_POST, L"CabinNum %d\n", self->service.cabNum);
     self->debugTime.prevTime = self->debugTime.currTime;
 }
 
@@ -369,7 +361,7 @@ static void _debugStep(st_Self *self, const ElectricLocomotive *loco, ElectricEn
  * @param loco
  * @param eng
  */
-static void _displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
+static void m_displayPult(st_Self *self, const ElectricLocomotive *loco, ElectricEngine *eng)
 {
     Cabin *cab = loco->cab;
 

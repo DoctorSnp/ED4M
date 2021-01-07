@@ -152,7 +152,7 @@ extern "C" void Q_DECL_EXPORT Run
  (ElectricEngine *eng,const ElectricLocomotive *loco, unsigned long State,
         float time, float AirTemperature)
 {
-     SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitchWithSound(loco, Tumblers::Switch_Panto, -1, 1, 0);
+     SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitch(loco, Tumblers::Switch_Panto, -1, 1, 0);
      SELF.game.AirTemperature = AirTemperature;
      SELF.game.time = time;
      SELF.game.locoPtr = loco;
@@ -228,12 +228,12 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco, ElectricE
 
     /* Проверка кранов/рычагов, реверса и т.д. */
     if ( SwitchID == Arms::Arm_395)
-        SELF.pneumo.Arm_395 = _checkSwitchWithSound(loco, Arms::Arm_395, SoundsID::Kran_395, 1, 2);
+        SELF.pneumo.Arm_395 = _checkSwitch(loco, Arms::Arm_395, SoundsID::Kran_395, 1, 2);
     else if  ( SwitchID ==  Arms::Arm_Reverse )
-       SELF.Reverse = _checkSwitchWithSound(loco,  Arms::Arm_Reverse, SoundsID::Revers, 1, 2);
+       SELF.Reverse = _checkSwitch(loco,  Arms::Arm_Reverse, SoundsID::Revers, 1, 2);
     else if  ( SwitchID ==  Arms::Arm_Controller )
     {
-       int ControllerPos = _checkSwitchWithSound(loco,  Arms::Arm_Controller, SoundsID::Controller, 1, 2);
+       int ControllerPos = _checkSwitch(loco,  Arms::Arm_Controller, SoundsID::Controller, 1, 2);
        if (ControllerPos >= NEUTRAL_CONTROLLER_POS )
        {
            SELF.RecuperationPosition = 0;
@@ -248,63 +248,63 @@ extern "C" void Q_DECL_EXPORT Switched(const ElectricLocomotive *loco, ElectricE
 
     /* проверка тумблеров */
     else if ( ( SwitchID >= Tmb_AvarEPT ) &&  ( SwitchID <= Tmb_vspomKompr  ))
-       SELF.tumblersArray[SwitchID] =  _checkSwitchWithSound(loco, SwitchID, Default_Tumbler, 1, 0);
+       SELF.tumblersArray[SwitchID] =  _checkSwitch(loco, SwitchID, Default_Tumbler, 1, 0);
     else if  ( SwitchID == Tmb_lightCab_Dimly)
-       SELF.tumblersArray[Tmb_lightCab_Dimly] = _checkSwitchWithSound(loco, Tmb_lightCab_Dimly, Default_Tumbler, 1, 0);
+       SELF.tumblersArray[Tmb_lightCab_Dimly] = _checkSwitch(loco, Tmb_lightCab_Dimly, Default_Tumbler, 1, 0);
     else if ( SwitchID == Tumblers::Key_EPK )
-        SELF.tumblersArray[Tumblers::Key_EPK] = _checkSwitchWithSound(loco, Tumblers::Key_EPK, SoundsID::EPK_INIT, 1, 0);
+        SELF.tumblersArray[Tumblers::Key_EPK] = _checkSwitch(loco, Tumblers::Key_EPK, SoundsID::EPK_INIT, 1, 0);
 
     else if ( SwitchID == Tumblers::Switch_AutomatUpr )
-        SELF.tumblersArray[Tumblers::Switch_AutomatUpr] = _checkSwitchWithSound(loco, Tumblers::Switch_AutomatUpr, SoundsID::Avtomat, 1, 0);
+        SELF.tumblersArray[Tumblers::Switch_AutomatUpr] = _checkSwitch(loco, Tumblers::Switch_AutomatUpr, SoundsID::Avtomat, 1, 0);
     else if ( SwitchID == Tumblers::Switch_VU )
-        SELF.tumblersArray[Tumblers::Switch_VU] = _checkSwitchWithSound(loco, Tumblers::Switch_VU, SoundsID::VU, 1, 0);
+        SELF.tumblersArray[Tumblers::Switch_VU] = _checkSwitch(loco, Tumblers::Switch_VU, SoundsID::VU, 1, 0);
 
     else if ( ( SwitchID == Tumblers::Tmb_leftDoors ) || ( SwitchID == Tumblers::Tmb_rightDoors ))
-       SELF.tempFlags[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
+       SELF.tempFlags[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
 
     else if ( SwitchID == Tumblers::Switch_PitALSN_1 )
-        SELF.tumblersArray[Tumblers::Switch_PitALSN_1] = _checkSwitchWithSound(loco, Tumblers::Switch_PitALSN_1, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[Tumblers::Switch_PitALSN_1] = _checkSwitch(loco, Tumblers::Switch_PitALSN_1, SoundsID::Switch, 1, 0);
     else if ( SwitchID == Tumblers::Switch_PitALSN_2 )
-        SELF.tumblersArray[Tumblers::Switch_PitALSN_2] = _checkSwitchWithSound(loco, Tumblers::Switch_PitALSN_2, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[Tumblers::Switch_PitALSN_2] = _checkSwitch(loco, Tumblers::Switch_PitALSN_2, SoundsID::Switch, 1, 0);
     else if ( SwitchID == Tumblers::Switch_Panto)
-        SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitchWithSound(loco, Tumblers::Switch_Panto, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitch(loco, Tumblers::Switch_Panto, SoundsID::Switch, 1, 0);
 
     /*проверка тумблеров, пакетников и кнопок на задней панели*/
 
     /*если маленький тумблер (свитч) */
     else if (( SwitchID >= Switch_LightSalon) && ( SwitchID <= Switch_EPT) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Switch, 1, 0);
     else if (( SwitchID == Switch_Vent_I_Otoplenie) ||  ( SwitchID == Switch_ObogrevZerkal) || ( SwitchID == Switch_BufRight) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Switch, 1, 0);
     else if (( SwitchID >= Switch_SvetPult ) &&  ( SwitchID <= Switch_XZ_2) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Switch, 1, 0);
     else if (( SwitchID >= Switch_StekloobogrOkon_Lob) && ( SwitchID <= Switch_StekloobogrevOkon_Bok) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Switch, 1, 0);
     else if (( SwitchID >= Switch_PitALSN_1 ) &&  ( SwitchID <= Switch_PitanieStekloobogrevMarshrut) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Switch, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Switch, 1, 0);
 
     /*если обычный тумблер или пакетник */
     else if (( SwitchID >= Tumbler_VspomCompressos ) &&  ( SwitchID <= Tumbler_ObogrevCabIntensiv) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
     else if (( SwitchID >= Tmb_Tormozhenie ) &&  ( SwitchID <= Tmb_Dvornik_Pomoshnik) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
     else if (( SwitchID == Packetnik_ObogrevCabDop ) ||  ( SwitchID == Packetnik_ObogrevMaslo) )
-        SELF.tumblersArray[SwitchID] = _checkSwitchWithSound(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
+        SELF.tumblersArray[SwitchID] = _checkSwitch(loco, SwitchID, SoundsID::Default_Tumbler, 1, 0);
 
 
     /**************** проверка кнопок ***********************************************/
 
     else if ( ( SwitchID == Buttons::Btn_TifonMash ) ||  (SwitchID ==Buttons::Btn_Tifon2) )
-        _checkSwitchWithSound(loco, Buttons::Btn_TifonMash, sounds::Tifon, 0, 0);
+        _checkSwitch(loco, Buttons::Btn_TifonMash, sounds::Tifon, 0, 0);
     else if ( ( SwitchID == Buttons::Btn_SvistokMash)  || (SwitchID ==Buttons::Btn_Svistok2) || (SwitchID ==Buttons::Btn_Svistok3 ))
-        _checkSwitchWithSound(loco, Buttons::Btn_SvistokMash, sounds::Svistok, 0, 0);
+        _checkSwitch(loco, Buttons::Btn_SvistokMash, sounds::Svistok, 0, 0);
     else if  ( SwitchID == Buttons::Btn_RB )
-        _checkSwitchWithSound(loco, Buttons::Btn_RB, sounds::RB, 0, 0);
+        _checkSwitch(loco, Buttons::Btn_RB, sounds::RB, 0, 0);
     else if  ( SwitchID == Buttons::Btn_RB_D )
-        _checkSwitchWithSound(loco, Buttons::Btn_RB_D, sounds::RB, 0, 0);
+        _checkSwitch(loco, Buttons::Btn_RB_D, sounds::RB, 0, 0);
 
     else if (SwitchID == Tumblers::KLUB_enable_input )
-        SELF.KLUB.canReadInput = _checkSwitchWithSound(loco, SwitchID, -1, 1, 0);
+        SELF.KLUB.canReadInput = _checkSwitch(loco, SwitchID, -1, 1, 0);
     else if ( (SwitchID >= Tumblers::KLUB_0) && ( SwitchID <= Tumblers::KLUB_CMD_K) )
        SELF.KLUB.inputKey = SwitchID;
 
