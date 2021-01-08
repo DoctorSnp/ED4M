@@ -120,7 +120,7 @@ wchar_t *stationName(const Locomotive *loco, float distance)
     TrackItemsItem *itemsList;
     UINT objsCount = 0;
     static UINT prevID = 0;
-    loco->GetTrackItems(1, distance, itemsList, objsCount);
+    loco->GetTrackItems(7, distance, itemsList, objsCount);
     for (UINT i =0; i < objsCount; i++)
     {
         if (itemsList[i].obj->ID != prevID)
@@ -129,7 +129,13 @@ wchar_t *stationName(const Locomotive *loco, float distance)
             if ( itemsList[i].obj->Type == TIT_PLATF )
             {
                 PlatformItem* plat = (PlatformItem*)itemsList[0].obj;
-                return plat->StationName;
+                if (plat->StationName)
+                    return plat->StationName;
+                else
+                {
+                    if (plat->PlatformName)
+                        return plat->PlatformName;
+                }
             }
         }
     }
