@@ -10,7 +10,7 @@
 #include "brake_data.h"
 
 /**
- * @brief The Brake_395 class Кран машиниста ул. номер 395 для RTrainSim
+ * @brief The Brake_395 class Кран машиниста усл. номер 395 для RTrainSim
  * @version 0.01
  * @date Январь 2021
  */
@@ -22,9 +22,13 @@ public:
 
   /**
    * @brief init Инициализация крана. (пока просто возвращает 0 - что означает успех)
+   * @param BrakeControlState Флаги работы тормозной системы : каждый бит - отдельный флаг
+   *                                1 бит - Включен контроль ТМ.
+   *                                2 бит - Включено ЭПТ .
+   *                                3 бит - Включен контроль НМ.
    * @return Возвращает 0, если инициализация удалась и -1 в случае ошибки.
    */
-  int init();
+  int init(int BrakeControlState);
 
   /**
    * @brief step Шаг работы крана
@@ -32,8 +36,12 @@ public:
    * @param loco Указатель на локомотив
    * @param eng Указатель на ходовую часть
    * @param millisec Тек. значение миллисекунд (float time) библиотечной функции Run
+   * @param BrakeControlState Флаги работы тормозной системы : каждый бит - отдельный флаг
+   *                                1 бит - Включен контроль ТМ.
+   *                                2 бит - Включено ЭПТ .
+   *                                3 бит - Включен контроль НМ.
    */
-  void  step(int pos, const Locomotive* loco, Engine *eng, float millisec, int BrakeSystemEngaged);
+  void  step(int pos, const Locomotive* loco, Engine *eng, float millisec, int BrakeControlState);
 
   /**
    * @brief constData Получение состояния крана машиниста
