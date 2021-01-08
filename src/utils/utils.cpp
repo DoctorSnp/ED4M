@@ -22,7 +22,6 @@ void  Printer_print(Engine *eng, int dbgLevel, const wchar_t *format, ...) noexc
     wchar_t text[2048];
     vswprintf_s(text, sizeof (text), format, args);
     va_end(args);
-
     eng->ShowMessage(dbgLevel, text);
 }
 

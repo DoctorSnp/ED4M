@@ -8,7 +8,7 @@
 #define EPK_H
 
 #include "ts.h"
-#include "sys/timeb.h"
+#include "src/shared_structs.h"
 
 typedef enum en_EPKState
 {
@@ -24,11 +24,11 @@ public:
     int init();
     void setEnabled(const Locomotive *loco, int isEnabled);
     void okey(const Locomotive *loco);
-    int step(const Locomotive *loco, int state);
+    int step(const Locomotive *loco, int state, st_gameTime currTime);
 private:
     en_EPKState m_state = EPK_Normal;
-    struct timeb prevTime;
-    struct timeb currTime;
+    st_gameTime m_prevTime = {};
+    st_gameTime m_currTime = {};
 };
 
 #endif // EPK_H

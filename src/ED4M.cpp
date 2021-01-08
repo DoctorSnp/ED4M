@@ -116,7 +116,7 @@ void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
        if (SELF->buttonsArray[Buttons::Btn_RB] || SELF->buttonsArray[Buttons::Btn_RB_D])
             epk.okey(loco);
         int sautState = saut.step(loco, loco->Eng(), &SELF->alsn);
-        int currEpkState = epk.step(loco, sautState );
+        int currEpkState = epk.step(loco, sautState, SELF->game.currTIme );
         if ( currEpkState )
         {
             //if (!SELF->flags.EPK_Triggered)
@@ -136,8 +136,7 @@ void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
     else
          KLUB_setState(&SELF->KLUB[SELF->cabNum], 0);
 
-    SELF->KLUB[SELF->cabNum -1].seconds = SELF->game.seconds;
-    SELF->KLUB[SELF->cabNum -1].milliseconds = SELF->game.milliseconds;
+    SELF->KLUB[SELF->cabNum -1 ].currTime = SELF->game.currTIme;
     KLUB_Step(&SELF->KLUB[SELF->cabNum -1], loco->Eng(), SELF->alsn, loco);
 
 }
@@ -174,7 +173,7 @@ int ED4M_Step(st_Self *SELF )
     int brake = 0;
     setBitState((char*)&brake, 0, SELF->armsArray[Arms::Arm_395_TM_Control]);
     setBitState((char*)&brake, 1, !SELF->armsArray[Arms::Arm_395_NM_Control]);
-    kran395.step(SELF->pneumo.Arm_395, loco, eng, SELF->game.milliseconds, brake);
+    kran395.step(SELF->pneumo.Arm_395, loco, eng, SELF->game.time, brake);
 
     /*Грузим данные из движка себе в МОЗГИ*/
 
@@ -194,9 +193,9 @@ int ED4M_Step(st_Self *SELF )
     float SetForce = m_tractionForce (SELF);
 
     if(SELF->alsn.CurrSpeed <= 3.01)
-        SetForce *= 20000.0;
+        SetForce *= 30000.0;
     else
-        SetForce *= 34000.0;
+        SetForce *= 54000.0;
 
     for (UINT i =0; i < loco->NumSlaves; i++)
         loco->Slaves[i]->Eng()->Force = (-SetForce) * (eng->Reverse);
@@ -388,8 +387,10 @@ static void m_debugStep(st_Self *self)
     ftime(&self->debugTime.currTime);
     if ((self->debugTime.prevTime.time + 1) > self->debugTime.currTime.time)
         return;
-    if (wcslen(self->KLUB[self->cabNum -1].stName) )
-        Printer_print(self->game.engPtr, GMM_POST, L"Station %s\n", self->KLUB[self->cabNum -1].stName);
+    //Printer_print(self->game.engPtr, GMM_POST, L"Time millis: %f\n", self->game.milliseconds);
+
+    //if (wcslen(self->KLUB[self->cabNum -1].stName) )
+    //    Printer_print(self->game.engPtr, GMM_POST, L"Station %s\n", self->KLUB[self->cabNum -1].stName);
     self->debugTime.prevTime = self->debugTime.currTime;
 }
 

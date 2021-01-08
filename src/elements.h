@@ -180,7 +180,7 @@ typedef enum en_Sensors
 
 
     /*КЛУБ непотянтое*/
-    TEST_KLUB_BIL1_LAMP  = 0,
+    TEST_KLUB_RED_TRIANGLE  = 0,
     TEST_KLUB_BIL2_LAMP  = 19,
 
 

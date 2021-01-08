@@ -51,8 +51,11 @@ typedef struct st_intermnalSAUT
     struct timeb prevTime;
     struct timeb currTime;
     float Speed;
-    float SpeedLimit;
+    int SpeedLimit;
     int Distance;
+    const Locomotive *locoPtr;
+    Engine *engPtr;
+
     SignColors m_siglNext =  SignColors::COLOR_WHITE;
     SignColors m_siglPrev =  SignColors::COLOR_WHITE;
 
