@@ -34,8 +34,9 @@ Brake_395::Brake_395()
     m_data.m_prevPos = -1;
 }
 
-int Brake_395::init(int BrakeControlState)
+int Brake_395::init(Engine *eng, int BrakeControlState )
 {
+    m_eng = eng;
     m_eng->BrakeSystemsEngaged = BrakeControlState;
     return 0;
 }

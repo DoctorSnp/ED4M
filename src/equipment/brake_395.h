@@ -28,7 +28,7 @@ public:
    *                                3 бит - Включен контроль НМ.
    * @return Возвращает 0, если инициализация удалась и -1 в случае ошибки.
    */
-  int init(int BrakeControlState);
+  int init(Engine *eng, int BrakeControlState);
 
   /**
    * @brief step Шаг работы крана
