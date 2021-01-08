@@ -1,6 +1,10 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
 
 #include "src/elements.h"
-
 #include "epk.h"
 
 EPK::EPK()
@@ -27,11 +31,11 @@ void EPK::setEnabled(const Locomotive *loco, int isEnabled)
 
 void EPK::okey(const Locomotive *loco)
 {
-    if (m_state == en_EPKState::EPK_Svist) // можно только если ЭПК не сорвало.
-    {
+   // if (m_state == en_EPKState::EPK_Svist) // можно только если ЭПК не сорвало.
+   // {
         m_state = en_EPKState::EPK_Normal;
         loco->PostTriggerCab(SoundsID::EPK_ALARM_S + 1);
-    }
+   // }
 }
 
 int EPK::step(const Locomotive *loco, int state)

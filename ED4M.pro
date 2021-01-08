@@ -42,7 +42,6 @@ HEADERS += \
     src/appliances/radiostation.h \
     src/appliances/saut.h \
     src/appliances/saut_datatype.h \
-    src/shared_code.h \
     src/shared_structs.h \
     src/RTS/ts.h \
     src/utils/utils.h \

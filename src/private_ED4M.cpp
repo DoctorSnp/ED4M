@@ -1,4 +1,9 @@
-﻿
+﻿/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
 #include <math.h>
 #include <stdio.h>
 
@@ -14,12 +19,8 @@ void _playSound(const Locomotive *loco, int soundId, int where )
         loco->PostTriggerCab((unsigned short)soundId);
 }
 
-int _checkSwitch(const Locomotive *loco, unsigned int switchElem)
-{
-    return loco->Cab()->Switch(switchElem);
-}
 
-int _checkSwitchWithSound(const Locomotive *loco, unsigned int switchElem, int soundId, int singleSound, int where)
+int _checkSwitch(const Locomotive *loco, unsigned int switchElem, int soundId, int singleSound, int where)
 {
     int elemState = loco->Cab()->Switch(switchElem);
     if (soundId >= 0)

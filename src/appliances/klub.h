@@ -1,3 +1,9 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
 #ifndef KLUB_H
 #define KLUB_H
 
@@ -21,6 +27,12 @@ typedef struct st_KLUB
     Cabin *cabPtr;
     Engine *enginePtr;
     const Locomotive *locoPtr;
+    int seconds;
+    int milliseconds;
+    int prevSignCode;
+    int currSignCode;
+    wchar_t signName[32];
+    wchar_t stName[32];
 }st_KLUB;
 
 int KLUB_init(st_KLUB* _KLUB);

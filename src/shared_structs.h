@@ -1,8 +1,13 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
 #ifndef SHARED_STRUCTS_H
 #define SHARED_STRUCTS_H
 
 #include "sys/timeb.h"
-#include "shared_code.h"
 #include "ts.h"
 
 #define SIGNALS_CNT 20
@@ -39,7 +44,7 @@ typedef struct st_ALSN
  SignalsInfo signListBack;
  SignalsInfo signListPassed;
  SignalsInfo ForwardSignalsList[SIGNALS_CNT];
- wchar_t signalName[MAX_STRING_NAME];
+ //wchar_t signalName[MAX_STRING_NAME];
  bool isBackward;
 }st_ALSN;
 

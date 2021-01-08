@@ -1,3 +1,9 @@
+/*
+    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+    If a copy of the MPL was not distributed with this file,
+    You can obtain one at https://mozilla.org/MPL/2.0/
+*/
+
 #ifndef ELEMENTS_H
 #define ELEMENTS_H
 
@@ -29,7 +35,6 @@ typedef enum en_Lights
 typedef enum sounds
 {
     Default_Tumbler = 26,
-    Kran_395 = 193,
     BV = 17,
     EPK_INIT = 129,
     //EPK_OFF = 107,
@@ -40,10 +45,6 @@ typedef enum sounds
     PesokButton = 4,
     FinalStop = 54,
     Controller = 16,
-    Kran395_Otpusk = 500,
-    Kran395_Poezdnoe = 502,
-    Kran395_Slugebnoe = 504,
-    Kran395_Extrennoe = 508,
     Svistok = 10,
     Tifon = 8,
     Avtomat = 191,
@@ -60,11 +61,6 @@ typedef enum sounds
     SAUT_KY = 1204,
     SAUT_RED = 1205,
     SAUT_WHITE = 1206,
-
-    /*Звуки КЛУБа*/
-
-    KLUB_Beep = 1401,
-    KLUB_Pick = 1402,
 
 }SoundsID;
 
@@ -257,6 +253,10 @@ typedef enum en_Arms
   Arm_Controller = 0,
   Arm_Reverse = 1,
   Arm_395 = 2,
+
+  Arm_395_NM_Control = 75,
+  Arm_395_TM_Control = 76,
+
   Arm_ManualBrake = 4,
 
   Arm_PressureLine = 75,
