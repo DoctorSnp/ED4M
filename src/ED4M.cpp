@@ -82,7 +82,7 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     loco->AuxiliaryPressure = 5.2;
     epk.init();
     saut.init();
-    kran395.init(1);
+    kran395.init(eng, 1);
 
     KLUB_init(&SELF->KLUB[0]);
     KLUB_init(&SELF->KLUB[1]);
@@ -113,7 +113,7 @@ void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
     }
     else
     {
-        if (SELF->buttonsArray[Buttons::Btn_RB] || SELF->buttonsArray[Buttons::Btn_RB_D])
+       if (SELF->buttonsArray[Buttons::Btn_RB] || SELF->buttonsArray[Buttons::Btn_RB_D])
             epk.okey(loco);
         int sautState = saut.step(loco, loco->Eng(), &SELF->alsn);
         int currEpkState = epk.step(loco, sautState );
@@ -173,7 +173,7 @@ int ED4M_Step(st_Self *SELF )
 
     int brake = 0;
     setBitState((char*)&brake, 0, SELF->armsArray[Arms::Arm_395_TM_Control]);
-    setBitState((char*)&brake, 1, SELF->armsArray[Arms::Arm_395_NM_Control]);
+    setBitState((char*)&brake, 1, !SELF->armsArray[Arms::Arm_395_NM_Control]);
     kran395.step(SELF->pneumo.Arm_395, loco, eng, SELF->game.milliseconds, brake);
 
     /*Грузим данные из движка себе в МОЗГИ*/
@@ -284,8 +284,6 @@ static float m_tractionForce ( st_Self *self)
 
 static void m_checkManagement(st_Self * self)
 {
-   // Cabin *cab = loco->cab;
-
     if ( self->tempFlags[Tumblers::Tmb_leftDoors] != FLAG_DISABLED )
     {
         m_SetDoorsState(self, DOORS_LEFT, self->tempFlags[Tumblers::Tmb_leftDoors]);
@@ -417,7 +415,7 @@ static void m_displayPult(st_Self *self)
     cab->SetDisplayState(Lamps::Lmp_RN, canLight );
     cab->SetDisplayState(Lamps::Lmp_VspomCepi, canLight );
     cab->SetDisplayState(Lamps::Lmp_RNDK, canLight );
-    cab->SetDisplayState(Lamps::Lmp_Preobr, canLight );
+    cab->SetDisplayState(Lamps::Lmp_Preobr, canLight && !eng->MainSwitch);
     cab->SetDisplayState(Lamps::Lmp_BV, ( canLight && !eng->MainSwitch) );
 
     int doorsIsClosed = 1;

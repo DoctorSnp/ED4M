@@ -43,15 +43,15 @@ int WINAPI DllEntryPoint(HINSTANCE hinst, unsigned long reason, void* lpReserved
  * Возвращает true в случае успеха и false в случае ошибки.
  */
 extern "C" bool Q_DECL_EXPORT Init
- (ElectricEngine *eng, ElectricLocomotive *loco,unsigned long State,
-        float time,float AirTemperature)
+(ElectricEngine *eng, ElectricLocomotive *loco,
+ unsigned long State, float time, float AirTemperature)
 {
     SELF.game.milliseconds = time;
-    SELF.game.milliseconds = AirTemperature;
-    SELF.game.milliseconds = State;
+    SELF.game.AirTemperature = AirTemperature;
+    SELF.game.State = State;
     if ( ED4M_init(&SELF, loco, eng ) == -1)
         return false;
- return true;
+    return true;
 }
 
 /**
