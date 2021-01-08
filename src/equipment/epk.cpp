@@ -31,11 +31,11 @@ void EPK::setEnabled(const Locomotive *loco, int isEnabled)
 
 void EPK::okey(const Locomotive *loco)
 {
-    if (m_state == en_EPKState::EPK_Svist) // можно только если ЭПК не сорвало.
-    {
+   // if (m_state == en_EPKState::EPK_Svist) // можно только если ЭПК не сорвало.
+   // {
         m_state = en_EPKState::EPK_Normal;
         loco->PostTriggerCab(SoundsID::EPK_ALARM_S + 1);
-    }
+   // }
 }
 
 int EPK::step(const Locomotive *loco, int state)

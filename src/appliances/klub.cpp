@@ -340,7 +340,9 @@ static void _displayCurrentMode(st_KLUB *_KLUB, st_ALSN &alsn)
         {
             _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Poezdn, 0, 1);
             _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Manevr, 0, 0);
-            swprintf(_KLUB->stName ,L"%s", stationName(_KLUB->locoPtr, 1000.0));
+            const wchar_t  *stNameStr = stationName(_KLUB->locoPtr, 1000.0);
+            if (stNameStr)
+                swprintf(_KLUB->stName ,L"%s", stNameStr);
             swprintf(_KLUB->signName, L"%s", svetoforName(alsn));
             swprintf(distanceToCell ,L"%03d", _KLUB->distanceToCell);
         }
