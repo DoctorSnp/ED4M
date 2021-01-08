@@ -7,7 +7,6 @@
 #ifndef KLUB_H
 #define KLUB_H
 
-#include "sys/timeb.h"
 #include "ts.h"
 #include "src/shared_structs.h"
 
@@ -22,13 +21,11 @@ typedef struct st_KLUB
     int canReadInput;
     int inputKey;
     int isOn;
-    struct timeb prevTime;
-    struct timeb currTime;
+    st_gameTime __prevTime;
+    st_gameTime currTime;
     Cabin *cabPtr;
     Engine *enginePtr;
     const Locomotive *locoPtr;
-    int seconds;
-    int milliseconds;
     int prevSignCode;
     int currSignCode;
     wchar_t signName[32];

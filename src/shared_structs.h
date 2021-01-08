@@ -7,7 +7,6 @@
 #ifndef SHARED_STRUCTS_H
 #define SHARED_STRUCTS_H
 
-#include "sys/timeb.h"
 #include "ts.h"
 
 #define SIGNALS_CNT 20
@@ -32,6 +31,12 @@ typedef enum SignColors
 
 PACKED_BEGIN
 
+typedef struct st_gameTime
+{
+    int seconds = 0;
+    int millis = 0;
+
+}st_gameTime;
 
 typedef struct st_ALSN
 {

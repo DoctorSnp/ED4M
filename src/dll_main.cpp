@@ -46,7 +46,7 @@ extern "C" bool Q_DECL_EXPORT Init
 (ElectricEngine *eng, ElectricLocomotive *loco,
  unsigned long State, float time, float AirTemperature)
 {
-    SELF.game.milliseconds = time;
+    SELF.game.time = time;
     SELF.game.AirTemperature = AirTemperature;
     SELF.game.State = State;
     if ( ED4M_init(&SELF, loco, eng ) == -1)
@@ -101,11 +101,19 @@ extern "C" void Q_DECL_EXPORT Run
      SELF.tumblersArray[Tumblers::Switch_Panto] = _checkSwitch(loco, Tumblers::Switch_Panto, -1, 1, 0);
      SELF.game.AirTemperature = AirTemperature;
 
-     SELF.game.seconds = RTSGetInteger(loco, RTS_VAR_TIME , 1);
-     SELF.game.milliseconds = time;
+     /**************** Переводим время игры в секунды и миллисекунды относительно начала времени игры */
+     SELF.game.currTIme.seconds = RTSGetInteger(loco, RTS_VAR_TIME , 1);
+     SELF.game.time = time;
+     SELF.game.gameTimeBuffer += time;
+     SELF.game.currTIme.millis = (int (SELF.game.gameTimeBuffer * 100)) % 1000;
+
      SELF.game.locoPtr = loco;
      SELF.game.engPtr = eng;
      SELF.game.State = State;
+    /***************************************/
+
+
+    // Printer_print(SELF.game.engPtr, GMM_POST, L"Millis %d\n", SELF.game.milliseconds );
      ED4M_Step(&SELF);
 }
 
@@ -146,7 +154,7 @@ extern "C" bool Q_DECL_EXPORT CanWorkWith(const Locomotive *loco, const wchar_t 
 extern "C" bool Q_DECL_EXPORT  CanSwitch(const ElectricLocomotive *loco, const ElectricEngine *eng,
                                          unsigned int SwitchID, unsigned int SetState)
 {
-    if(SwitchID==Arm_Reverse)
+    if(SwitchID == Arm_Reverse)
     {
         if ( (loco->Velocity > 0.01) || (loco->Eng()->Force > 0.01))
             return false;
@@ -154,7 +162,7 @@ extern "C" bool Q_DECL_EXPORT  CanSwitch(const ElectricLocomotive *loco, const E
             return false;
         return true;
     }
-    if (SwitchID==Arm_Controller)
+    if (SwitchID == Arm_Controller)
     {
         if (SELF.Reverse != REVERSE_NEUTRAL)
             return true;

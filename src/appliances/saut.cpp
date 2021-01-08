@@ -55,12 +55,16 @@ int SAUT::stop(const Locomotive *loco, Engine *eng) noexcept
 
 int SAUT::step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcept
 {
+    m_SELF.locoPtr = loco;
+    m_SELF.engPtr = eng;
+
     int sautState = SAUT_NORMAL;
     if (isEnabled == 0)
         return SAUT_DISABLED;
 
-    m_SELF.Speed = alsn->CurrSpeed;
-    //m_SELF.SpeedLimit = alsn->SpeedLimit.Limit;
+    m_SELF.Speed = m_SELF.locoPtr->Velocity;
+    m_SELF.SpeedLimit = (int)alsn->SpeedLimit.Limit;
+
 
     if (m_SELF.m_siglNext == SignColors::COLOR_WHITE)
         m_SELF.SpeedLimit = WHITE_LIMIT;
@@ -72,14 +76,13 @@ int SAUT::step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcep
     if ( loco->Velocity == 0.0)
         return SAUT_NORMAL;
 
-
     ftime(&m_SELF.currTime);
     m_updateSoundsTime();
 
-    if ((m_SELF.SpeedLimit - 2.0) <= m_SELF.Speed) // за 2 км/ч начинаем пищать
+    if ((m_SELF.SpeedLimit - 2) <= (int)m_SELF.Speed) // за 2 км/ч начинаем пищать
          m_SoundPip(loco);
 
-    if ( m_SELF.SpeedLimit < m_SELF.Speed )
+    if ( m_SELF.SpeedLimit < (int)m_SELF.Speed )
     {
         m_Sound_DisableTyaga(loco);
         sautState = EPK_ALARM_FOR_EPK;
@@ -151,7 +154,6 @@ SignColors SAUT::m_getSignColor(int sig) noexcept
         return SignColors::COLOR_RED;
     else
         return SignColors::COLOR_WHITE;
-        //return en_SignColors::UNSET;
 }
 
 void SAUT::m_playColor(const Locomotive *loco, SignColors colour) noexcept

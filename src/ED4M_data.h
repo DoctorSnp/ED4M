@@ -41,8 +41,10 @@ typedef struct st_game
     ElectricEngine *engPtr;
     const Cabin *cabPtr;
     float AirTemperature;
-    int seconds;
-    float milliseconds;
+
+    float gameTimeBuffer;
+    float time;
+    st_gameTime currTIme;
     unsigned long State;
 }st_game;
 /**

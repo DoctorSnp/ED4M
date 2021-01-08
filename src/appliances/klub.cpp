@@ -36,17 +36,18 @@ static void _displayTime(st_KLUB* _KLUB, int isDisplay);
 static void  _displayPressure(st_KLUB* _KLUB, int isDisplay);
 static void _displayReg(st_KLUB* _KLUB, int isDisplay);
 
-
+/*Ввод и обработка команд */
 static void _checkInput(st_KLUB* _KLUB);
 static void _addToCmd(st_KLUB* _KLUB, int cifer);
 static int _execCmd(st_KLUB *_KLUB);
-
+/**************************/
 
 int KLUB_init(st_KLUB* _KLUB)
 {
     memset(_KLUB, 0, sizeof (st_KLUB));
-    ftime(&_KLUB->prevTime);
-    ftime(&_KLUB->currTime);
+    _KLUB->__prevTime  = {};
+   // ftime(&_KLUB->prevTime);
+   // ftime(&_KLUB->currTime);
     _KLUB->cmdForExec = 0;
     _KLUB->prevSignCode = -1;
     _KLUB->currSignCode = -1;
@@ -64,9 +65,9 @@ void KLUB_setState(st_KLUB *_KLUB, int newState)
 
 void KLUB_Step(st_KLUB* _KLUB,  Engine *eng, st_ALSN& alsn, const Locomotive *loco)
 {
-    ftime(&_KLUB->currTime);
-    if ( _KLUB->currTime.time < _KLUB->prevTime.time + 1 )
-        if ( _KLUB->currTime.millitm  < _KLUB->prevTime.millitm + 500 )
+    //ftime(&_KLUB->currTime);
+    if ( _KLUB->currTime.seconds < _KLUB->__prevTime.seconds + 1 )
+        if ( _KLUB->currTime.millis  < _KLUB->__prevTime.millis + 500 )
             return;
 
     _KLUB->locoPtr = loco;
@@ -84,8 +85,8 @@ void KLUB_Step(st_KLUB* _KLUB,  Engine *eng, st_ALSN& alsn, const Locomotive *lo
     }
 
     _display(_KLUB, alsn, eng);
-    _KLUB->prevTime.time = _KLUB->currTime.time;
-    _KLUB->prevTime.millitm = _KLUB->currTime.millitm;
+    _KLUB->__prevTime.seconds = _KLUB->currTime.seconds;
+    _KLUB->__prevTime.millis = _KLUB->currTime.millis;
 
     if (_KLUB->isOn < 2)
         return;
@@ -102,7 +103,7 @@ static void _display(st_KLUB* _KLUB, st_ALSN& alsn, Engine *eng)
     if (_KLUB->isOn < 1)
     {
 
-     // _KLUB->cabPtr->SetDisplayState(Sensors::TEST_KLUB_BIL1_LAMP, 1 );
+     _KLUB->cabPtr->SetDisplayState(Sensors::TEST_KLUB_RED_TRIANGLE, 1 );
      // _KLUB->cabPtr->SetDisplayState(Sensors::TEST_KLUB_BIL2_LAMP, 1);
 
     //_KLUB->cabPtr->SetScreenValue(Sensors::TEST_KLUB_BIL_SECTOR_SCREEN, 1 , 160.0);
@@ -287,9 +288,9 @@ static void _displayTime(st_KLUB* _KLUB, int isDisplay)
     if (_KLUB->cabPtr->ScreenState(Sensors::Sns_KLUB_Time, 0) < 1)
         _KLUB->cabPtr->SetScreenState(Sensors::Sns_KLUB_Time, 0, 1);
 
-    int sec  = _KLUB->seconds % 60;
-    int min  = (_KLUB->seconds / 60) % 60;
-    int hour = (_KLUB->seconds / 3600) % 24;
+    int sec  = _KLUB->currTime.seconds % 60;
+    int min  = (_KLUB->currTime.seconds / 60) % 60;
+    int hour = (_KLUB->currTime.seconds / 3600) % 24;
 
     wchar_t tempText[12];
     swprintf(tempText ,L"%02d.%02d.%02d", hour, min, sec);
