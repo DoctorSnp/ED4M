@@ -39,6 +39,7 @@ static void m_displayPult(st_Self *self);
 static void m_debugStep(st_Self *self);
 /**************************************************************************************/
 
+
 static SAUT saut;
 
 static Brake_395 kran395;
@@ -79,10 +80,12 @@ int ED4M_init( st_Self *SELF, Locomotive *loco, Engine *eng)
     loco->MainResPressure = 8.0;
     loco->TrainPipePressure = 5.0;
     loco->AuxiliaryPressure = 5.2;
+    epk.init();
     saut.init();
-    kran395.init();
+    kran395.init(1);
+
     KLUB_init(&SELF->KLUB[0]);
-    KLUB_init(&SELF->KLUB[0]);
+    KLUB_init(&SELF->KLUB[1]);
 
     Radiostation_Init(&SELF->radio);
 
@@ -110,7 +113,7 @@ void ED4M_ALSN(st_Self *SELF, const Locomotive *loco)
     }
     else
     {
-        if (SELF->buttonsArray[Buttons::Btn_RB])
+        if (SELF->buttonsArray[Buttons::Btn_RB] || SELF->buttonsArray[Buttons::Btn_RB_D])
             epk.okey(loco);
         int sautState = saut.step(loco, loco->Eng(), &SELF->alsn);
         int currEpkState = epk.step(loco, sautState );
@@ -379,18 +382,16 @@ static int m_haveElectroEmergency(st_Self *self)
     return 0;
 }
 
-
-
 /**
- * @brief _debugPrint
+ * @brief _debugPrint Здесь можно
  */
 static void m_debugStep(st_Self *self)
 {
     ftime(&self->debugTime.currTime);
     if ((self->debugTime.prevTime.time + 1) > self->debugTime.currTime.time)
         return;
-
-    //Printer_print(eng, GMM_POST, L"BrakeState %d\n", brake);
+    if (wcslen(self->KLUB[self->cabNum -1].stName) )
+        Printer_print(self->game.engPtr, GMM_POST, L"Station %s\n", self->KLUB[self->cabNum -1].stName);
     self->debugTime.prevTime = self->debugTime.currTime;
 }
 
