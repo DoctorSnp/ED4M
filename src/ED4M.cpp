@@ -200,10 +200,9 @@ int ED4M_step(st_Self *SELF )
         return 1;
     }
 
-    if (SELF->elecrto[SELF->cabNum].TyagaPosition == 0)
-    {
-        SELF->elecrto[SELF->cabNum].lkitTime = -1;
-    }
+    if ((SELF->elecrto[SELF->cabNum].TyagaPosition == 0) &&  (SELF->elecrto[SELF->cabNum].RecuperationPosition))
+        SELF->elecrto[SELF->cabNum].lkitTime = SELF->game.currTime.seconds;
+
     SELF->game.cabPtr = loco->cab;
     if (SELF->cabNum < 1)
         return 1;
@@ -599,7 +598,6 @@ static void m_displayPult(st_Self *SELF)
     ElectricEngine *eng = SELF->game.engPtr;
     Cabin *cab = loco->cab;
 
-
     cab->SetDisplayValue(Sensors::Sns_Voltage, loco->LineVoltage );
     cab->SetDisplayValue(Sensors::Sns_BrakeCil, loco->BrakeCylinderPressure );
     cab->SetDisplayValue(Sensors::Sns_SurgeTank, eng->UR);
@@ -616,16 +614,10 @@ static void m_displayPult(st_Self *SELF)
     cab->SetDisplayState(Lamps::Lmp_O, lampEPT && (SELF->elecrto[SELF->cabNum].RecuperationPosition > 0) );
     cab->SetDisplayState(Lamps::Lmp_T, lampEPT && (loco->BrakeCylinderPressure >= MIN_FOR_SOT));
 
+    int NoVybeg = (SELF->elecrto[SELF->cabNum].RecuperationPosition) || (SELF->elecrto[SELF->cabNum].TyagaPosition);
+    int LKiT = (SELF->elecrto[SELF->cabNum].lkitTime + 3 > SELF->game.currTime.seconds);
 
-    if (SELF->elecrto[SELF->cabNum].TyagaPosition !=0 &&  SELF->elecrto[SELF->cabNum].lkitTime == -1 )
-       SELF->elecrto[SELF->cabNum].lkitTime = 110;
-
-    if ( SELF->elecrto[SELF->cabNum].lkitTime > 0)
-        SELF->elecrto[SELF->cabNum].lkitTime--;
-
-    int LKiT = eng->Force &&  (SELF->elecrto[SELF->cabNum].lkitTime > 0);
-
-    cab->SetDisplayState(Lamps::Lmp_LKiT, canLight  &&  LKiT);
+    cab->SetDisplayState(Lamps::Lmp_LKiT, canLight  && LKiT && NoVybeg);
     cab->SetDisplayState(Lamps::Lmp_RN, canLight  && !eng->MainSwitch);
     cab->SetDisplayState(Lamps::Lmp_VspomCepi, canLight && !eng->MainSwitch );
     cab->SetDisplayState(Lamps::Lmp_RNDK, canLight  && !eng->MainSwitch );
