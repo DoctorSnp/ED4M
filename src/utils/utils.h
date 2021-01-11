@@ -7,16 +7,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "ts.h"
 #include <iostream>
 #include <cctype>
 #include <cwctype>
 
-#include "ts.h"
 #include "src/shared_structs.h"
 
-
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
-
 
 #define IS_GREEN(sig)   ( sig == SIGASP_CLEAR_1) || (sig == SIGASP_CLEAR_2 )
 #define IS_YELLOW(sig)  ( sig == SIGASP_APPROACH_1) || (sig == SIGASP_APPROACH_2) || (sig == SIGASP_APPROACH_3 )
@@ -33,15 +31,20 @@ void  Printer_print(Engine *eng, int dbgLevel, const wchar_t *format, ...) noexc
  * @param whatDo 1, если установить и 0, если сбросить
  */
 void setBitState(char* array, int bitNum, int whatDo);
-int bitIsSet(int array, int bitNum);
+int BitState(int array, int bitNum);
 
-int svetoforDistance(st_ALSN &alsn, int numSign);
-wchar_t *svetoforName(st_ALSN &alsn);
-int m_getSignCode(st_ALSN *alsn);
 
-wchar_t *stationName(const Locomotive *loco, float distance);
+const SignalsInfo *__svetoforStruct(st_ALSN &alsn, int onlyMain);
 
-SignColors m_getSignColor(int sig);
+int Svetofor_code(st_ALSN *alsn);
+SignColors Svetofor_colour(int sig);
+int Svetofor_Distance(st_ALSN &alsn, int numSign);
+wchar_t *Svetofor_Name(st_ALSN &alsn);
+
+
+int stationName(const Locomotive *loco, float distance, wchar_t *stantionBuffer, size_t stantionBufferSize);
+
+
 
 
 #endif // UTILS_H

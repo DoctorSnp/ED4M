@@ -6,6 +6,7 @@
 
 #include "ts.h"
 
+PACKED_BEGIN
 /* так выделяется память */
 LPRTS_GETINT RTSGetInteger=NULL,RTSSetIntegerG=NULL;
 LPRTS_GETOBJ RTSGetObject= NULL;
@@ -98,3 +99,5 @@ extern "C" unsigned long  __declspec(dllexport) DLLVersion(unsigned int Paramete
  };
  return 0;
 }
+
+PACKED_END

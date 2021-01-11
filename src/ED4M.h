@@ -17,9 +17,9 @@
     You can obtain one at https://mozilla.org/MPL/2.0/
 */
 
-#define SECTION_DEST_FORWARD 1
-#define SECTION_DEST_BACKWARD -1
 
+#define DOORS_OPENED 0
+#define DOORS_CLOSED 1
 #define DOORS_LEFT 1
 #define DOORS_RIGHT 2
 
@@ -45,13 +45,15 @@ int ED4M_init(struct st_Self *SELF, Locomotive *loco, Engine *eng);
 void ED4M_ALSN(struct st_Self *SELF, const Locomotive *loco);
 
 /**
- * @brief ED4M_Step Шаг работы электрички.
+ * @brief ED4M_step Шаг работы электрички.
  * @param SELF Указатель на структуру со своими параметрами.
  * @param loco Указатель на локомотив
  * @param eng Указатель на ходовую часть
  * @return Возвращает 1, если всё в норме и -1, в случае ошибок.
  */
-int ED4M_Step(struct st_Self *SELF);
+int ED4M_step(struct st_Self *SELF);
 
+
+int ED4M_checkCab(st_Self *SELF); // получение номера активной кабины
 
 #endif // VL15_LOGIC_H

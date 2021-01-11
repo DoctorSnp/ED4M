@@ -7,8 +7,6 @@
   * Модифицированная версия файла ts, ибо как сделан оригинальный - это вообще не айс!
   */
 
-#define MAX_STRING_NAME 2048
-
 #define TS_VERSION 104
 
 #define MAXSOUNDQUEUE 96
@@ -21,7 +19,7 @@
 
 // ЖЁЛТЫЙ
 #define SIGASP_APPROACH_1    3
-#define SIGASP_APPROACH_2    4
+#define SIGASP_APPROACH_2    4 // возможно ЖмЖ
 #define SIGASP_APPROACH_3    5
 
 // ЗЕЛЁНЫЙ
@@ -756,43 +754,49 @@ struct Cabin: public DLLInterfaceObject{
   return 0.0;
  };
 
- inline float DisplayState(UINT displayID){
+ inline float DisplayState(UINT displayID)
+ {
   ActDisplay *dpl=(ActDisplay *)RTSGetCabObject(DLLHandle,this,RTSOT_Display,displayID,-1);
   if(dpl)
    return dpl->State;
   return 0;
- };
+ }
 
- inline void SetHint(UINT displayID,int ID){
+ inline void SetHint(UINT displayID,int ID)
+ {
   ActDisplay *dpl=(ActDisplay *)RTSGetCabObject(DLLHandle,this,RTSOT_Display,displayID,-1);
   if(dpl)
    dpl->ShowHint=ID;
- };
+ }
 
- inline bool IsDoorOpened(UINT ID){
+ inline bool IsDoorOpened(UINT ID)
+ {
   ActDoor *door=(ActDoor *)RTSGetCabObject(DLLHandle,this,RTSOT_Door,ID,-1);
   if(door)
    return door->State;
   return false;
- };
+ }
 
- inline void SwitchLight(UINT ID,UINT On){
+ inline void SwitchLight(UINT ID,UINT On)
+ {
   InternalLight *lgt=(InternalLight *)RTSGetCabObject(DLLHandle,this,RTSOT_IntLight,ID,-1);
   if(lgt)
    lgt->State=On;
- };
+ }
 
- inline void SetLightColour(UINT ID,ULONG Colour){
+ inline void SetLightColour(UINT ID,ULONG Colour)
+ {
   InternalLight *lgt=(InternalLight *)RTSGetCabObject(DLLHandle,this,RTSOT_IntLight,ID,-1);
   if(lgt)
    lgt->Colour=Colour;
- };
+ }
 
  inline void SetLightState(UINT ID,UINT State,ULONG Colour,float SpotExp,
         float RadiusX=-1.0,float RadiusZ=-1.0)
  {
   InternalLight *lgt=(InternalLight *)RTSGetCabObject(DLLHandle,this,RTSOT_IntLight,ID,-1);
-  if(lgt){
+  if(lgt)
+  {
    lgt->State=State;
    if(Colour)
     lgt->Colour=Colour;
@@ -802,30 +806,34 @@ struct Cabin: public DLLInterfaceObject{
     lgt->Radius[0]=RadiusX;
    if(RadiusZ>0.0)
     lgt->Radius[1]=RadiusZ;
-  };
- };
+  }
+ }
 
- inline unsigned int IsLightOn(UINT ID){
+ inline unsigned int IsLightOn(UINT ID)
+ {
   InternalLight *lgt=(InternalLight *)RTSGetCabObject(DLLHandle,this,RTSOT_IntLight,ID,-1);
   if(lgt)
    return lgt->State;
   return 0;
- };
+ }
 
- inline int ScreenState(UINT DisplayID,UINT SubID){
+ inline int ScreenState(UINT DisplayID,UINT SubID)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw)
    return sw->State;
   return 0;
- };
+ }
 
- inline void SetScreenState(UINT DisplayID,UINT SubID,int State){
+ inline void SetScreenState(UINT DisplayID,UINT SubID,int State)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw)
    sw->SetState=State;
- };
+ }
 
- inline void SetScreenLabel(UINT DisplayID,UINT SubID,wchar_t *text){
+ inline void SetScreenLabel(UINT DisplayID,UINT SubID,wchar_t *text)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw)
    if(sw->Type==CT_LABEL && sw->hint){
@@ -833,23 +841,26 @@ struct Cabin: public DLLInterfaceObject{
      lstrcpynW(sw->hint,text,sw->Pt[1]);
     else
      sw->hint[0]=0;
-   };
- };
+   }
+ }
 
- inline void SetScreenValue(UINT DisplayID,UINT SubID,float Value){
+ inline void SetScreenValue(UINT DisplayID,UINT SubID,float Value)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw)
    sw->Value=Value;
- };
+ }
 
- inline float ScreenValue(UINT DisplayID,UINT SubID){
+ inline float ScreenValue(UINT DisplayID,UINT SubID)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw)
    return sw->Value;
   return -1.0;
- };
+ }
 
- inline void SetScreenArea(UINT DisplayID,UINT SubID,float *area,UINT Flags){
+ inline void SetScreenArea(UINT DisplayID,UINT SubID,float *area,UINT Flags)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw){
    if(Flags&1)
@@ -860,10 +871,11 @@ struct Cabin: public DLLInterfaceObject{
     sw->Area[2]=area[2];
    if(Flags&8)
     sw->Area[3]=area[3];
-  };
- };
+  }
+ }
 
- inline void SetScreenGridState(UINT DisplayID,UINT SubID,int Row,int Col,int State){
+ inline void SetScreenGridState(UINT DisplayID,UINT SubID,int Row,int Col,int State)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw){
    if(sw->Type==CT_GRID){
@@ -871,26 +883,28 @@ struct Cabin: public DLLInterfaceObject{
      sw->SetState|=1<<(Row*int(sw->Pt[2])+Col);
     else
      sw->SetState&=~(1<<(Row*int(sw->Pt[2])+Col));
-   };
-  };
- };
+   }
+  }
+ }
 
- inline void ChangeTexture(UINT TexChangeID,UINT State){
+ inline void ChangeTexture(UINT TexChangeID,UINT State)
+ {
   TexChange * chng=(TexChange *)RTSGetCabObject(DLLHandle,this,RTSOT_TexChng,TexChangeID,-1);
   if(chng)
    chng->SetState=State;
- };
+ }
 
 
- inline void SetScreenFade(UINT DisplayID,UINT SubID,float Fade,float Blink){
+ inline void SetScreenFade(UINT DisplayID,UINT SubID,float Fade,float Blink)
+ {
   CloseUpSubObject *sw=(CloseUpSubObject *)RTSGetCabObject(DLLHandle,this,RTSOT_ScrSub,DisplayID,SubID);
   if(sw){
    if(Fade>=0.0)
     sw->Fade[1]=Fade;
    if(Blink>=0.0)
     sw->Fade[2]=Blink;
-  };
- };
+  }
+ }
 
  inline void SetDisplayFade(UINT displayID,float Fade,float Blink){
   ActDisplay *dpl=(ActDisplay *)RTSGetCabObject(DLLHandle,this,RTSOT_Display,displayID,-1);
