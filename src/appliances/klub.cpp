@@ -19,6 +19,9 @@
 #define KLUB_MANEVR 2
 #define KLUB_DOUBLE_TYAGA 3
 
+
+#define KLUB_DEBUG 1234
+
 constexpr int Limit_Yellow = 60;
 constexpr int Limit_YellowYellow = 40;
 //constexpr int Limit_YellowGreen = 80;
@@ -72,6 +75,7 @@ int KLUB_init(st_KLUB* _KLUB)
     _KLUB->whiteSpeed = 60;
     _KLUB->prevSignCode = -1;
     _KLUB->isMegaPaskali = true;
+    _KLUB->isDebugMode = false;
     return 0;
 }
 
@@ -367,8 +371,6 @@ static void m_displayCurrentMode(st_KLUB *_KLUB, st_ALSN &alsn)
     swprintf(distanceToCell, L"");
     swprintf(_KLUB->stName, L"");
 
-
-
     if (_KLUB->isOn >= 2)
     {
         _KLUB->cabPtr->SetDisplayState(Sensors::Sns_KLUB_Poezdn, _KLUB->mode ==  KLUB_POEZDNOE);
@@ -377,8 +379,13 @@ static void m_displayCurrentMode(st_KLUB *_KLUB, st_ALSN &alsn)
         {
             _KLUB->distanceToCell = Svetofor_Distance(alsn, 1);
             _KLUB->speedLimit = m_speedLimit(_KLUB, alsn);
+
             //stationName(_KLUB->locoPtr, 3000.0, _KLUB->stName, sizeof (_KLUB->stName));
-            swprintf(_KLUB->signName, L"%s %s", Svetofor_Name(alsn), _KLUB->displayCmdText);
+            const wchar_t *sigName = Svetofor_Name(alsn);
+            if (sigName)
+                swprintf(_KLUB->signName, L"%s %s", sigName, _KLUB->displayCmdText);
+            else
+                swprintf(_KLUB->signName, L"СИГНАЛ %s", _KLUB->displayCmdText);
             swprintf(distanceToCell ,L"%03d", _KLUB->distanceToCell);
         }
         else if (_KLUB->mode == KLUB_MANEVR)
@@ -389,7 +396,8 @@ static void m_displayCurrentMode(st_KLUB *_KLUB, st_ALSN &alsn)
         }
 
     }
-    _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Station, 0, _KLUB->stName);
+
+    //_KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_Station, 0, _KLUB->stName);
     _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_SigName, 0, _KLUB->signName);
     _KLUB->cabPtr->SetScreenLabel(Sensors::Sns_KLUB_RassDoCeli, 0, distanceToCell);
 }
@@ -521,6 +529,12 @@ static int _execCmd(st_KLUB *_KLUB)
         _KLUB->mode = KLUB_POEZDNOE;
         _KLUB->whiteSpeed = 40;
     }
+    else if (_KLUB->cmdForExec[0] == KLUB_DEBUG)
+    {
+        _KLUB->isDebugMode = !_KLUB->isDebugMode;
+
+    }
+
     else
         retCode = 0;
 
@@ -533,14 +547,10 @@ static int _execCmd(st_KLUB *_KLUB)
 static void m_debug(st_KLUB *_KLUB, st_ALSN &alsn)
 {
   const SignalsInfo *sigInfo = __svetoforStruct(alsn, 1);
-  Printer_print(_KLUB->enginePtr, GMM_POST, L"Aspect: %u Flags: %u Tile0 %hu Tile1 %hu, Name: %s",
-                sigInfo->Aspect[0],
-                sigInfo->Flags,
-                sigInfo->SignalInfo->Tile[0],
-                sigInfo->SignalInfo->Tile[1],
-                sigInfo->SignalInfo->Name
-               // sigInfo->SignalInfo->Pos[0],sigInfo->SignalInfo->Pos[1],sigInfo->SignalInfo->Pos[2]
-                );
-
-  //Printer_print(_KLUB->enginePtr, GMM_POST, L"KLUB: Speed: %d SigCode %d\n", _KLUB->currSpeed, _KLUB->speedLimit);
+  if (sigInfo  && _KLUB->enginePtr && _KLUB->isDebugMode)
+  {
+      Printer_print(_KLUB->enginePtr, GMM_POST, L"Aspect[0]: %u Aspect[1]: %u Aspect[2]: Aspect[3]: %u%u Flags: %u",
+                    sigInfo->Aspect[0], sigInfo->Aspect[1], sigInfo->Aspect[2], sigInfo->Aspect[3], sigInfo->Flags
+                    );
+  }
 }

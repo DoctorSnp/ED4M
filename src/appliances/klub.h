@@ -23,6 +23,7 @@ typedef struct st_KLUB
     int canReadInput;
     int inputKey;
     int isOn;
+    int isDebugMode;
     st_gameTime __prevTime;
     st_gameTime currTime;
     Cabin *cabPtr;

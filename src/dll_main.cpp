@@ -335,7 +335,4 @@ extern "C" void Q_DECL_EXPORT SpeedLimit(const Locomotive *loco,
 {
     if (SELF.cabNum < 0)
         return;
-
-    //Printer_print(loco->Eng(), GMM_POST, L"Speed Limit!\n");
-    //SELF.sautData.SpeedLimit =  Event;
 }

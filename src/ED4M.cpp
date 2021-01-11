@@ -200,7 +200,7 @@ int ED4M_step(st_Self *SELF )
         return 1;
     }
 
-    if ((SELF->elecrto[SELF->cabNum].TyagaPosition == 0) &&  (SELF->elecrto[SELF->cabNum].RecuperationPosition))
+    if ((SELF->elecrto[SELF->cabNum].TyagaPosition == 0) &&  (SELF->elecrto[SELF->cabNum].RecuperationPosition == 0))
         SELF->elecrto[SELF->cabNum].lkitTime = SELF->game.currTime.seconds;
 
     SELF->game.cabPtr = loco->cab;
