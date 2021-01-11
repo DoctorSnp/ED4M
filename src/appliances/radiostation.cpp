@@ -17,9 +17,7 @@
 #define START_SOUNDS_TRIGGER 999
 
 static int randint(int n)
-
 {
-
   if ((n - 1) == RAND_MAX)
   {
     return rand();

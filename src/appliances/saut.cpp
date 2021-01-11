@@ -97,7 +97,7 @@ int SAUT::step(const Locomotive *loco, Engine *eng, const st_ALSN *alsn) noexcep
         sautState = EPK_ALARM_FOR_EPK;
     }
 
-    m_SELF.m_siglNext = m_getSignColor(m_getSignCode(alsn));
+    m_SELF.m_siglNext = m_getSignColor(alsn->correctALSNCode);
     if (m_SELF.m_siglPrev != m_SELF.m_siglNext)
     {
         m_SELF.m_siglPrev = m_SELF.m_siglNext;

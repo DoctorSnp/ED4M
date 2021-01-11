@@ -9,9 +9,7 @@
 #include "epk.h"
 
 EPK::EPK()
-{
-
-}
+{}
 
 int EPK::init()
 {

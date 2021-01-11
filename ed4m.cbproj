@@ -60,6 +60,8 @@
         <IncludePath>src\RTS\;src\equipment\;src\appliances\;src\utils\;src\;src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\utils\;D:\RTS\ED4M_abstract\;D:\RTS\ED4M_abstract\src\;$(IncludePath)</IncludePath>
         <_TCHARMapping>char</_TCHARMapping>
         <ILINK_LibraryPath>src\RTS\;src\equipment\;src\appliances\;src\utils\;src\;src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\ED4M_datatypes\cab\section1\;D:\RTS\ED4M_abstract\src\utils\;D:\RTS\ED4M_abstract\;D:\RTS\ED4M_abstract\src\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <RunBCCOutOfProcess>true</RunBCCOutOfProcess>
+        <SubProcessesNumber>4</SubProcessesNumber>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <PackageImports>adortl;appanalytics;bcbie;bcbsmp;bindcomp;bindcompdbx;bindcompfmx;bindcompvcl;bindengine;CustomIPTransport;DataSnapClient;DataSnapCommon;DataSnapConnectors;DatasnapConnectorsFreePascal;DataSnapFireDAC;DataSnapIndy10ServerTransport;DataSnapNativeClient;DataSnapProviderClient;DataSnapServer;DataSnapServerMidas;dbexpress;dbrtl;dbxcds;DbxClientDriver;DbxCommonDriver;DBXDb2Driver;DBXFirebirdDriver;DBXInformixDriver;DBXInterBaseDriver;DBXMSSQLDriver;DBXMySQLDriver;DBXOdbcDriver;DBXOracleDriver;DBXSqliteDriver;DBXSybaseASADriver;DBXSybaseASEDriver;dsnap;dsnapcon;dsnapxml;emsedge;emshosting;FireDACADSDriver;FireDACASADriver;FireDACCommonODBC;FireDACDb2Driver;FireDACDBXDriver;FireDACDSDriver;FireDACInfxDriver;FireDACMongoDBDriver;FireDACMSAccDriver;FireDACMSSQLDriver;FireDACMySQLDriver;FireDACODBCDriver;FireDACOracleDriver;FireDACPgDriver;FireDACTDataDriver;fmx;fmxase;fmxdae;fmxFireDAC;fmxobj;ibmonitor;ibxbindings;ibxpress;IndyCore;IndyIPClient;IndyIPCommon;IndyIPServer;IndyProtocols;IndySystem;inetdb;inetdbxpress;rtl;svn;tethering;vcl;vclactnband;vcldb;vcldsnap;vclFireDAC;vclib;vclie;vclimg;VCLRESTComponents;VclSmp;vcltouch;vclwinx;vclx;xmlrtl;$(PackageImports)</PackageImports>
@@ -112,6 +114,8 @@
         <Manifest_File>(None)</Manifest_File>
         <BPILibOutputDir>D:\Games\RTS\TRAINS\TRAINSET\rz_ED4m-Alias\Cab\</BPILibOutputDir>
         <FinalOutputDir>D:\Games\RTS\TRAINS\TRAINSET\rz_ED4m-Alias\Cab\</FinalOutputDir>
+        <BCC_DataAlignment>DWord</BCC_DataAlignment>
+        <BCC_InstructionSet>4</BCC_InstructionSet>
     </PropertyGroup>
     <ItemGroup>
         <CppCompile Include="src\appliances\klub.cpp">
@@ -162,12 +166,9 @@
         <None Include="src\equipment\epk.h">
             <BuildOrder>10</BuildOrder>
         </None>
-        <CppCompile Include="src\private_ED4M.cpp">
-            <BuildOrder>19</BuildOrder>
+        <CppCompile Include="src\RTS\rts_data.cpp">
+            <BuildOrder>24</BuildOrder>
         </CppCompile>
-        <None Include="src\private_ED4M.h">
-            <BuildOrder>20</BuildOrder>
-        </None>
         <CppCompile Include="src\RTS\ts.cpp">
             <BuildOrder>11</BuildOrder>
         </CppCompile>
@@ -179,6 +180,12 @@
         </None>
         <None Include="src\shared_structs.h">
             <BuildOrder>22</BuildOrder>
+        </None>
+        <CppCompile Include="src\utils\auxil_funcs.cpp">
+            <BuildOrder>24</BuildOrder>
+        </CppCompile>
+        <None Include="src\utils\auxil_funcs.h">
+            <BuildOrder>25</BuildOrder>
         </None>
         <CppCompile Include="src\utils\utils.cpp">
             <BuildOrder>13</BuildOrder>

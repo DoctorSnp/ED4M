@@ -9,12 +9,13 @@
 
 #include "ts.h"
 
+
 #define SIGNALS_CNT 20
+#define MAX_STR_LEN 256
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 typedef enum SignColors
 {
@@ -28,14 +29,13 @@ typedef enum SignColors
 }SignColors;
 
 
-
 PACKED_BEGIN
 
+// описатель времени в секундан и миллисекундых (Берётся время игры)
 typedef struct st_gameTime
 {
     int seconds = 0;
     int millis = 0;
-
 }st_gameTime;
 
 typedef struct st_ALSN
@@ -43,13 +43,12 @@ typedef struct st_ALSN
  float CurrSpeed;
  float PrevSpeed;
  struct SpeedLimitDescr SpeedLimit;
+ int correctALSNCode;
  int NumSigForw;
  int NumSigBack;
  int NumSigPassed;
- SignalsInfo signListBack;
  SignalsInfo signListPassed;
  SignalsInfo ForwardSignalsList[SIGNALS_CNT];
- //wchar_t signalName[MAX_STRING_NAME];
  bool isBackward;
 }st_ALSN;
 

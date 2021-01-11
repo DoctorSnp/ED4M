@@ -9,6 +9,7 @@
 
 #include "ts.h"
 #include "saut_datatype.h"
+#include "src/RTS/rts_data.h"
 
 #define SAUT_NORMAL 1
 #define SAUT_DISABLED 0
@@ -94,7 +95,7 @@ private:
      */
     void m_scanObjects(const Locomotive *loco, int where = 1);
 
-    wchar_t m_stateString[MAX_STRING_NAME];
+    wchar_t m_stateString[MAX_STRING_LEN];
     int isEnabled = false;
     st_intermnalSAUT m_SELF;
 };

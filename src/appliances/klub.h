@@ -14,27 +14,38 @@
 typedef struct st_KLUB
 {
     int mode;
+    int currSpeed;
     int speedLimit;
+    int signalLimit;
     int distanceToCell;
-    int cmdForExec;
+    int cmdForExec[4];
     int pressed_K;
     int canReadInput;
     int inputKey;
     int isOn;
+    int isDebugMode;
     st_gameTime __prevTime;
     st_gameTime currTime;
     Cabin *cabPtr;
     Engine *enginePtr;
     const Locomotive *locoPtr;
     int prevSignCode;
-    int currSignCode;
-    wchar_t signName[32];
-    wchar_t stName[32];
+    wchar_t signName[MAX_STR_LEN];
+    wchar_t stName[MAX_STR_LEN/4];
+    wchar_t displayCmdText[MAX_STR_LEN/2];
+    wchar_t askText[MAX_STR_LEN/2];
+    int askFlag;
+    int whiteSpeed = 60;
+    bool isMegaPaskali;
 }st_KLUB;
 
+/**
+ * @brief KLUB_init Инициализация КЛУБ-У
+ * @param _KLUB Указатель на структуру данных КЛУБ-У
+ * @return  Возвращает 0 в случае успеха и -1 в случае ошибки.
+ */
 int KLUB_init(st_KLUB* _KLUB);
 
-void KLUB_setState(st_KLUB *_KLUB, int newState);
 void KLUB_Step(st_KLUB *_KLUB, Engine *eng, st_ALSN& alsn, const Locomotive *loco);
 
 #endif // KLUB_H

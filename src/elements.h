@@ -8,29 +8,37 @@
 #define ELEMENTS_H
 
 
-typedef enum en_Lights
+typedef enum en_ExteriorLights
 {
-   Light_Proj_Half1 = 0,
-   Light_Proj_Half2 = 6,
-   Light_Proj_Half3 = 12,
-   Light_Proj_Half4 = 18,
+   Proj_Half1 = 0,
+   Light_Proj_Half1 = 2,
 
-   Light_Proj_Full1 = 1,
-   Light_Proj_Full2 = 7,
-   Light_Proj_Full3 = 13,
-   Light_Proj_Full4 = 19,
-   Light_Proj_Full5= 30,
-   Light_Proj_Full6= 31,
-   Light_Proj_Full7= 32,
-   Light_Proj_Full8= 33,
+   Proj_Full1 = 1,
+   Light_Proj_Full1 = 3,
 
+   Light_BufferRight_1 = 4,
    Light_BufferRight = 6,
+   Light_BufferRightLight = 8,
+
+   Light_BufferLeft_1 = 5,
    Light_BufferLeft = 7,
+   Light_BufferLeftLight = 9,
+
+   Light_SigDownRight = 10,
+   Light_SigDownLeft = 11,
+
    Light_SigUp1 = 12,
    Light_SigUp2 = 13,
-   //Light_SigDown1 = ,
 
-}en_Lights;
+}en_ExteriorLights;
+
+
+typedef enum en_InteriorLights
+{
+   Svet_Pribor1 = 1,
+   Svet_Pribor2 = 2,
+
+}en_InteriorLights;
 
 typedef enum sounds
 {
@@ -62,7 +70,11 @@ typedef enum sounds
     SAUT_RED = 1205,
     SAUT_WHITE = 1206,
 
+    MainCompressorWork = 58, // 59 - отмена
+    MainCompressorStop = 60,
 }SoundsID;
+
+
 
 typedef enum en_Tumblers
 {
@@ -74,15 +86,16 @@ typedef enum en_Tumblers
     Tmb_manage_RightDoors_TCH_MP = 10,
     Tmb_PantoUP = 11,
     Tmb_PantoDown = 12,
-    Tmb_vspomKompr = 13,
+    Tmb_vspomCompr = 13,
     Tmb_lightCab_Dimly = 18,
     Switch_VU = 19,
     Switch_AutomatUpr = 20,
 
     Tmb_leftDoors = 24,
     Tmb_rightDoors = 25,
-    Key_EPK = 26,
 
+    MultiTumbler_Projector = 27,
+    MultiTumbler_PPT = 28,
 
     /* Задняя панель */
     Switch_LightSalon = 30,
@@ -94,12 +107,12 @@ typedef enum en_Tumblers
     Packetnik_ObogrevMaslo = 36,
     Switch_Vent_I_Otoplenie = 37, // +
     Switch_ObogrevZerkal = 38, // +
-    Tumbler_VspomCompressos = 39, // +
+    Switch_VspomCompr = 39, // +
     Tumbler_ObogrevCab = 40,
     Tumbler_ObogrevCabIntensiv = 41,
     Switch_BufRight = 42,
     Packetnik_ObogrevCabDop = 43,
-    Switch_SvetPult = 44,
+    Switch_SvetPult = 44, // Освещение пульта
     Switch_XZ = 45,
     Switch_VentCab = 46, // +
     Switch_Radio = 47, //+
@@ -122,7 +135,9 @@ typedef enum en_Tumblers
     Switch_BufferFonar_I_Dvorniki = 65,
     Switch_PitanieStekloobogrevLob = 66,  // +
     Switch_PitanieStekloobogrevMarshrut = 67, // +
+    Key_EPK = 26,
 
+    /* КЛУБ */
     KLUB_enable_input = 79,
     KLUB_0 = 80,
     KLUB_1 = 81,
@@ -164,6 +179,8 @@ typedef enum en_Sensors
 
     Sns_KLUB_Poezdn = 33,
     Sns_KLUB_Manevr = 34,
+    Sns_KLUB_MarshrutOtklonenie = 35,
+    Sns_KLUB_MarshrutNaProhod = 36,
 
     Sns_KLUB_Green4 = 40,
     Sns_KLUB_Green3 = 41,
@@ -210,7 +227,7 @@ typedef enum en_Lamps
     Lmp_SOT_X = 8,
     Lmp_RP  = 9,
     Lmp_BV  = 10,
-    Lmp_LK  = 11,
+    Lmp_LKiT  = 11,
     Lmp_RB  = 12,
     Lmp_RNDK  = 13,
     Lmp_VspomCepi  = 14,
@@ -233,7 +250,8 @@ typedef enum en_Buttons
     Btn_TifonMash = 16,
     Btn_Tifon2 = 69,
     Btn_RB_D = 22,
-    Btn_RB = 23,
+    Btn_RB_POM = 23,
+    Btn_RB_MASH= 29,
     Btn_RescueBrake = 38,
 
     Btn_Zapros = 49,
@@ -253,14 +271,9 @@ typedef enum en_Arms
   Arm_Controller = 0,
   Arm_Reverse = 1,
   Arm_395 = 2,
-
+  Arm_ManualBrake = 4,
   Arm_395_NM_Control = 75,
   Arm_395_TM_Control = 76,
-
-  Arm_ManualBrake = 4,
-
-  Arm_PressureLine = 75,
-  Arm_DoubleForce = 76,
 
 }Arms;
 

@@ -8,7 +8,7 @@
 #define EPK_H
 
 #include "ts.h"
-#include "src/shared_structs.h"
+#include "src/RTS/rts_data.h"
 
 typedef enum en_EPKState
 {

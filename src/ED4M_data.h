@@ -7,8 +7,6 @@
 #ifndef ED4M_DATA_H
 #define ED4M_DATA_H
 
-#include "ts.h"
-
 #include "appliances/klub.h"
 #include "appliances/radiostation.h"
 #include "src/RTS/rts_data.h"
@@ -16,65 +14,55 @@
 #define SWITCHES_CNT 790 /*максимальный ID элемента в файле кабины. Как правило cab.sd */
 #define TUMBLERS_MAX_ID SWITCHES_CNT
 #define ARMS_MAX_ID     SWITCHES_CNT
+#define CABS_COUNT 2
+
+/* нулевой индекс массива нужен для "абстрактных данных кабины".
+ * Т.е. общих данных на поезд и чтобы проще было гулять по массиву */
+#define CABS_ARRAY_SIZE CABS_COUNT + 1
 
 PACKED_BEGIN
 
-#define CABS_COUNT 2
+// Пневматика
+typedef struct st_Pneumo
+{
+    int CompressorMainWork;
+    int CompressorAuxWork;
+}Pneumo;
 
+// Электрика
 typedef struct st_Electric
 {
     unsigned char PantoRaised;
     float power;
     float LineVoltage;
+    unsigned int    TyagaPosition;
+    unsigned int    RecuperationPosition;
+    int lkitTime;
 }Electric;
 
-typedef struct st_Tumblers
-{
-    int projHalf;
-    int projFull;
-    int AvarEPT;
-}st_Tumblers;
-
-typedef struct st_game
-{
-    const ElectricLocomotive *locoPtr;
-    ElectricEngine *engPtr;
-    const Cabin *cabPtr;
-    float AirTemperature;
-
-    float gameTimeBuffer;
-    float time;
-    st_gameTime currTIme;
-    unsigned long State;
-}st_game;
 /**
  * @brief The st_Self struct Структура с собственными параметрами для работы между функциями библиотеки.
  */
 struct st_Self
 {
-
-  int tumblersArray[TUMBLERS_MAX_ID];
-  int armsArray[ARMS_MAX_ID];
-  int tempFlags[TUMBLERS_MAX_ID];
-  int buttonsArray[SWITCHES_CNT];
-  Electric elecrto;
-  Pneumo pneumo;
-  float prevVelocity;
-  bool SL2M_Ticked;
-  int BV_STATE;
-
-  st_Radiostation radio;
-  int Reverse;
-  unsigned int TyagaPosition;
-  unsigned int RecuperationPosition;
-  int shuntNum;
-  st_ALSN alsn;
-  st_timeForDebug debugTime;
-  st_ServiceInfo service;
+  st_gameTime currTime;
+  st_gameTime prevTime;
   int cabNum;
   st_game game;
+  wchar_t errorText[MAX_STRING_LEN];
 
-  st_KLUB KLUB[CABS_COUNT];
+  int tumblers[CABS_ARRAY_SIZE][TUMBLERS_MAX_ID];
+  int arms[CABS_ARRAY_SIZE][ARMS_MAX_ID];
+  int buttons[CABS_ARRAY_SIZE][SWITCHES_CNT];
+
+  Electric elecrto[CABS_ARRAY_SIZE];
+  Pneumo  pneumo[CABS_ARRAY_SIZE];
+  float   prevVelocity;
+  int     doors[2];
+  int     BV_STATE[CABS_ARRAY_SIZE];
+  st_Radiostation radio[CABS_ARRAY_SIZE];
+  st_ALSN alsn[CABS_ARRAY_SIZE];
+  st_KLUB KLUB[CABS_ARRAY_SIZE];
 };
 
 PACKED_END
